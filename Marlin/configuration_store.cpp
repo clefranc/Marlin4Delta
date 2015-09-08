@@ -531,7 +531,7 @@ void Config_ResetDefault() {
     delta_alpha_ca = DELTA_ALPHA_CA;
     delta_alpha_cb = DELTA_ALPHA_CB;
     delta_segments_per_second = DELTA_SEGMENTS_PER_SECOND;
-    recalc_delta_settings(delta_diagonal_rod_a, delta_diagonal_rod_b, delta_diagonal_rod_c, delta_radius_a, delta_radius_b, delta_radius_c, delta_tower_a_alpha, delta_tower_b_beta);
+    recalc_delta_settings(delta_diagonal_rod_a, delta_diagonal_rod_b, delta_diagonal_rod_c, delta_radius_a, delta_radius_b, delta_radius_c, delta_alpha_ca, delta_alpha_cb);
   #elif ENABLED(Z_DUAL_ENDSTOPS)
     z_endstop_adj = 0;
   #endif
