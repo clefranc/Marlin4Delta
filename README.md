@@ -1,7 +1,8 @@
-__NOTE: For calibrating delta parameters for dimensional accuracy,
-please use this branch:__
+__NOTE: Use this branch for calibrating individual delta diagonal rod and horizontal radius parameters for dimensional accuracy of your prints. Also include parameters for towers rotation (angle mismatch).__
 
-https://github.com/clefranc/MarlinDev/tree/delta_calibration
+__See the section Delta Settings in delta Configuration.h examples for more information.__
+
+Thank you!
 
 # Marlin 3D Printer Firmware
 <img align="top" width=175 src="Documentation/Logo/Marlin%20Logo%20GitHub.png" />
