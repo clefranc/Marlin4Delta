@@ -195,7 +195,7 @@
  * M503 - Print the current settings (from memory not from EEPROM). Use S0 to leave off headings.
  * M540 - Use S[0|1] to enable or disable the stop SD card print on endstop hit (requires ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
  * M600 - Pause for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
- * M665 - Set delta configurations: L<diagonal rod> R<delta radius> S<segments/s>
+ * M665 - Set delta configurations: A|B|C<diagonal rod tower a|b|c> D|E|F<radius tower a|b|c> G<tower a angle> H<tower b angle> S<segments per second>
  * M666 - Set delta endstop adjustment
  * M605 - Set dual x-carriage movement mode: S<mode> [ X<duplication x-offset> R<duplication temp offset> ]
  * M907 - Set digital trimpot motor current using axis codes.
@@ -352,30 +352,26 @@ bool target_direction;
 
 #if ENABLED(DELTA)
 
-  #define TOWER_1 X_AXIS
-  #define TOWER_2 Y_AXIS
-  #define TOWER_3 Z_AXIS
-
   float delta[3] = { 0 };
-  #define SIN_60 0.8660254037844386
-  #define COS_60 0.5
   float endstop_adj[3] = { 0 };
-  // these are the default values, can be overriden with M665
-  float delta_radius = DELTA_RADIUS;
-  float delta_tower1_x = -SIN_60 * (delta_radius + DELTA_RADIUS_TRIM_TOWER_1); // front left tower
-  float delta_tower1_y = -COS_60 * (delta_radius + DELTA_RADIUS_TRIM_TOWER_1);
-  float delta_tower2_x =  SIN_60 * (delta_radius + DELTA_RADIUS_TRIM_TOWER_2); // front right tower
-  float delta_tower2_y = -COS_60 * (delta_radius + DELTA_RADIUS_TRIM_TOWER_2);
-  float delta_tower3_x = 0;                                                    // back middle tower
-  float delta_tower3_y = (delta_radius + DELTA_RADIUS_TRIM_TOWER_3);
-  float delta_diagonal_rod = DELTA_DIAGONAL_ROD;
-  float delta_diagonal_rod_trim_tower_1 = DELTA_DIAGONAL_ROD_TRIM_TOWER_1;
-  float delta_diagonal_rod_trim_tower_2 = DELTA_DIAGONAL_ROD_TRIM_TOWER_2;
-  float delta_diagonal_rod_trim_tower_3 = DELTA_DIAGONAL_ROD_TRIM_TOWER_3;
-  float delta_diagonal_rod_2_tower_1 = sq(delta_diagonal_rod + delta_diagonal_rod_trim_tower_1);
-  float delta_diagonal_rod_2_tower_2 = sq(delta_diagonal_rod + delta_diagonal_rod_trim_tower_2);
-  float delta_diagonal_rod_2_tower_3 = sq(delta_diagonal_rod + delta_diagonal_rod_trim_tower_3);
-  //float delta_diagonal_rod_2 = sq(delta_diagonal_rod);
+  // These are the default values, can be overriden with M665.
+  float delta_alpha_ca = DELTA_ALPHA_CA;
+  float delta_alpha_cb = DELTA_ALPHA_CB;
+  float delta_radius_a = DELTA_RADIUS_A; // Front left tower also know as A, X, 1, or alpha.
+  float delta_radius_b = DELTA_RADIUS_B; // Front right tower also know as B, Y, 2, or beta.
+  float delta_radius_c = DELTA_RADIUS_C; // Back middle tower also know as C, Z, 3, or gamma.
+  float delta_tower_a_x = -sin((delta_alpha_ca - 60) * M_PI / 180.0f) * delta_radius_a;
+  float delta_tower_a_y = -cos((delta_alpha_ca - 60) * M_PI / 180.0f) * delta_radius_a;
+  float delta_tower_b_x =  sin((delta_alpha_cb - 60) * M_PI / 180.0f) * delta_radius_b;
+  float delta_tower_b_y = -cos((delta_alpha_cb - 60) * M_PI / 180.0f) * delta_radius_b;
+  float delta_tower_c_x = 0;
+  float delta_tower_c_y = delta_radius_c;
+  float delta_diagonal_rod_a = DELTA_DIAGONAL_ROD_A;
+  float delta_diagonal_rod_b = DELTA_DIAGONAL_ROD_B;
+  float delta_diagonal_rod_c = DELTA_DIAGONAL_ROD_C;
+  float delta_diagonal_rod_a_2 = sq(delta_diagonal_rod_a);
+  float delta_diagonal_rod_b_2 = sq(delta_diagonal_rod_b);
+  float delta_diagonal_rod_c_2 = sq(delta_diagonal_rod_c);
   float delta_segments_per_second = DELTA_SEGMENTS_PER_SECOND;
   #if ENABLED(AUTO_BED_LEVELING_FEATURE)
     int delta_grid_spacing[2] = { 0, 0 };
@@ -4499,21 +4495,27 @@ inline void gcode_M206() {
   /**
    * M665: Set delta configurations
    *
-   *    L = diagonal rod
-   *    R = delta radius
+   *    A = diagonal rod tower A
+   *    B = diagonal rod tower B
+   *    C = diagonal rod tower C
+   *    D = radius tower A
+   *    E = radius tower B
+   *    F = radius tower C
+   *    G = tower A angle
+   *    H = tower B angle
    *    S = segments per second
-   *    A = Alpha (Tower 1) diagonal rod trim
-   *    B = Beta (Tower 2) diagonal rod trim
-   *    C = Gamma (Tower 3) diagonal rod trim
    */
   inline void gcode_M665() {
-    if (code_seen('L')) delta_diagonal_rod = code_value();
-    if (code_seen('R')) delta_radius = code_value();
+    if (code_seen('A')) delta_diagonal_rod_a = code_value();
+    if (code_seen('B')) delta_diagonal_rod_b = code_value();
+    if (code_seen('C')) delta_diagonal_rod_c = code_value();
+    if (code_seen('D')) delta_radius_a = code_value();
+    if (code_seen('E')) delta_radius_b = code_value();
+    if (code_seen('F')) delta_radius_c = code_value();
+    if (code_seen('G')) delta_alpha_ca = code_value();
+    if (code_seen('H')) delta_alpha_cb = code_value();
     if (code_seen('S')) delta_segments_per_second = code_value();
-    if (code_seen('A')) delta_diagonal_rod_trim_tower_1 = code_value();
-    if (code_seen('B')) delta_diagonal_rod_trim_tower_2 = code_value();
-    if (code_seen('C')) delta_diagonal_rod_trim_tower_3 = code_value();
-    recalc_delta_settings(delta_radius, delta_diagonal_rod);
+    recalc_delta_settings(delta_diagonal_rod_a, delta_diagonal_rod_b, delta_diagonal_rod_c, delta_radius_a, delta_radius_b, delta_radius_c, delta_alpha_ca, delta_alpha_cb);
   }
   /**
    * M666: Set delta endstop adjustment
@@ -5980,7 +5982,7 @@ void process_next_command() {
         break;
 
       #if ENABLED(DELTA)
-        case 665: // M665 set delta configurations L<diagonal_rod> R<delta_radius> S<segments_per_sec>
+        case 665: // M665 set delta configurations A|B|C<diagonal rod tower a|b|c> D|E|F<radius tower a|b|c> G<tower a angle> H<tower b angle> S<segments per second>
           gcode_M665();
           break;
       #endif
@@ -6265,31 +6267,31 @@ void clamp_to_software_endstops(float target[3]) {
 
 #if ENABLED(DELTA)
 
-  void recalc_delta_settings(float radius, float diagonal_rod) {
-    delta_tower1_x = -SIN_60 * (radius + DELTA_RADIUS_TRIM_TOWER_1);  // front left tower
-    delta_tower1_y = -COS_60 * (radius + DELTA_RADIUS_TRIM_TOWER_1);
-    delta_tower2_x =  SIN_60 * (radius + DELTA_RADIUS_TRIM_TOWER_2);  // front right tower
-    delta_tower2_y = -COS_60 * (radius + DELTA_RADIUS_TRIM_TOWER_2);
-    delta_tower3_x = 0.0;                                             // back middle tower
-    delta_tower3_y = (radius + DELTA_RADIUS_TRIM_TOWER_3);
-    delta_diagonal_rod_2_tower_1 = sq(delta_diagonal_rod + delta_diagonal_rod_trim_tower_1);
-    delta_diagonal_rod_2_tower_2 = sq(delta_diagonal_rod + delta_diagonal_rod_trim_tower_2);
-    delta_diagonal_rod_2_tower_3 = sq(delta_diagonal_rod + delta_diagonal_rod_trim_tower_3);
+  void recalc_delta_settings(float diagonal_rod_a, float diagonal_rod_b, float diagonal_rod_c, float radius_a, float radius_b, float radius_c, float tower_a_alpha, float tower_b_beta) {
+    delta_tower_a_x = -sin((tower_a_alpha - 60) * M_PI / 180.0f) * radius_a;
+    delta_tower_a_y = -cos((tower_a_alpha - 60) * M_PI / 180.0f) * radius_a;
+    delta_tower_b_x =  sin((tower_b_beta - 60) * M_PI / 180.0f) * radius_b;
+    delta_tower_b_y = -cos((tower_b_beta - 60) * M_PI / 180.0f) * radius_b;
+    delta_tower_c_x = 0.0;
+    delta_tower_c_y = radius_c;
+    delta_diagonal_rod_a_2 = sq(diagonal_rod_a);
+    delta_diagonal_rod_b_2 = sq(diagonal_rod_b);
+    delta_diagonal_rod_c_2 = sq(diagonal_rod_c);
   }
 
   void calculate_delta(float cartesian[3]) {
 
-    delta[TOWER_1] = sqrt(delta_diagonal_rod_2_tower_1
-                         - sq(delta_tower1_x-cartesian[X_AXIS])
-                         - sq(delta_tower1_y-cartesian[Y_AXIS])
+    delta[X_AXIS] = sqrt(delta_diagonal_rod_a_2
+                         - sq(delta_tower_a_x-cartesian[X_AXIS])
+                         - sq(delta_tower_a_y-cartesian[Y_AXIS])
                          ) + cartesian[Z_AXIS];
-    delta[TOWER_2] = sqrt(delta_diagonal_rod_2_tower_2
-                         - sq(delta_tower2_x-cartesian[X_AXIS])
-                         - sq(delta_tower2_y-cartesian[Y_AXIS])
+    delta[Y_AXIS] = sqrt(delta_diagonal_rod_b_2
+                         - sq(delta_tower_b_x-cartesian[X_AXIS])
+                         - sq(delta_tower_b_y-cartesian[Y_AXIS])
                          ) + cartesian[Z_AXIS];
-    delta[TOWER_3] = sqrt(delta_diagonal_rod_2_tower_3
-                         - sq(delta_tower3_x-cartesian[X_AXIS])
-                         - sq(delta_tower3_y-cartesian[Y_AXIS])
+    delta[Z_AXIS] = sqrt(delta_diagonal_rod_c_2
+                         - sq(delta_tower_c_x-cartesian[X_AXIS])
+                         - sq(delta_tower_c_y-cartesian[Y_AXIS])
                          ) + cartesian[Z_AXIS];
     /*
     SERIAL_ECHOPGM("cartesian x="); SERIAL_ECHO(cartesian[X_AXIS]);
