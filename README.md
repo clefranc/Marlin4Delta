@@ -21,7 +21,7 @@ For the latest tagged version of Marlin (currently 1.0.2 – January 2015) you s
 
 ## Current Status: Bug Fixing
 
-[![Coverity Scan Build Status](https://scan.coverity.com/projects/6300/badge.svg)](https://scan.coverity.com/projects/2224)
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/6300/badge.svg)](https://scan.coverity.com/projects/6300)
 [![Travis Build Status](https://travis-ci.org/clefranc/Marlin4Delta.svg)](https://travis-ci.org/clefranc/Marlin4Delta)
 
 ##### [RepRap.org Wiki Page](http://reprap.org/wiki/Marlin)
