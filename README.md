@@ -1,12 +1,15 @@
-<img align="left" hspace="20" src="Documentation/Logo/Marlin%20Logo%20GitHub.png" />
+<h1 align="center">
+  <img align="center" src="Documentation/Logo/Marlin%20Logo%20GitHub.png" alt="Marlin4Delta Logo">
+</h1>
 # Marlin4Delta 3D Printer Firmware
- Documentation has moved to [marlinfirmware.org](http://www.marlinfirmware.org).
+
+Documentation has moved to [marlinfirmware.org](http://www.marlinfirmware.org).
 
 ## About this fork
 
 This fork is primarily destined for calibrating individual delta diagonal rod and horizontal radius parameters for dimensional accuracy of your prints. Also include parameters for towers rotation (angle mismatch).
 
-See the section Delta Settings in delta Configuration.h examples for more 
+See the section [Delta Settings](https://github.com/clefranc/Marlin4Delta/blob/master/Marlin/example_configurations/delta/biv2.5/Configuration.h#L315) in delta Configuration.h examples for instructions.
 
 ## Development Only
 
