@@ -1,42 +1,36 @@
-__NOTE: For calibrating delta parameters for dimensional accuracy,
-please use this branch:__
-
-https://github.com/clefranc/MarlinDev/tree/delta_calibration
-
-# Marlin 3D Printer Firmware
-<img align="top" width=175 src="Documentation/Logo/Marlin%20Logo%20GitHub.png" />
+<img align="right" width=175 src="Documentation/Logo/Marlin%20Logo%20GitHub.png" />
+-
+# Marlin4Delta 3D Printer Firmware
  Documentation has moved to [marlinfirmware.org](http://www.marlinfirmware.org).
 
 ## Development Only
 
 __Not for production use – use with caution!__
 
-The [dev branch](https://github.com/MarlinFirmware/MarlinDev/tree/dev) contains the most up-to-date Marlin code. When reporting any issues, please check to see if they are resolved in this branch first. But let us know if issues exist in tagged releases so that we can document and patch them.
+This fork is from the [Marlin development branch](https://github.com/MarlinFirmware/MarlinDev/tree/dev) and DO NOT ALWAYS contains the most up-to-date Marlin code. I'll try to rebase it on the most up-to-date Marlin code from time to time. When reporting any issues, please check to see if they are resolved in the [Marlin development branch](https://github.com/MarlinFirmware/MarlinDev/tree/dev) first. But let me know if an update is available that can help you.
 
-## Testing
-The [RC branch](https://github.com/MarlinFirmware/MarlinDev/tree/RC) will contain the latest pre-release candidate.
-
-## Submitting Patches
-Development patches should be submitted as a Pull Request against the [master](https://github.com/MarlinFirmware/MarlinDev/tree/master) branch
- 
 For the latest tagged version of Marlin (currently 1.0.2 – January 2015) you should switch to the [Release Repository](https://github.com/MarlinFirmware/Marlin).
+
+## About this fork
+
+This fork is primarily destined for calibrating individual delta diagonal rod and horizontal radius parameters for dimensional accuracy of your prints. Also include parameters for towers rotation (angle mismatch).
+
+See the section Delta Settings in delta Configuration.h examples for more 
 
 ## Current Status: Bug Fixing
 
-Marlin development is being accelerated to catch up with a long list of issues. Check the Issues and Pull Requests links on the right to to see what we are currently working on.
-
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/2224/badge.svg)](https://scan.coverity.com/projects/2224)
-[![Travis Build Status](https://travis-ci.org/MarlinFirmware/MarlinDev.svg)](https://travis-ci.org/MarlinFirmware/MarlinDev)
+[![Travis Build Status](https://travis-ci.org/clefranc/Marlin4Delta.svg)](https://travis-ci.org/clefranc/Marlin4Delta)
 
 ##### [RepRap.org Wiki Page](http://reprap.org/wiki/Marlin)
 
 ## Contact
 
-__Google Hangout:__ <a href="https://plus.google.com/hangouts/_/gxn3wrea5gdhoo223yimsiforia" target="_blank">. Hangout</a> We have a hangout every 2 weeks. Search the issue list for "Hangout" and you will see what time and date the next event is going on.
+This fork is maintained by [Christian Lefrançois ](https://github.com/clefranc).
 
-## Credits
+## Credits and special thanks
 
-The current Marlin dev team consists of:
+Special thanks to the current Marlin dev team consisting of:
 
  - Scott Lahteine [@thinkyhead] - English
  - Andreas Hardtung [@AnHardt] - Deutsch, English
