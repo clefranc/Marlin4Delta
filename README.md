@@ -1,7 +1,12 @@
-<img align="right" width=175 src="Documentation/Logo/Marlin%20Logo%20GitHub.png" />
--
+<img align="left" hspace="20" src="Documentation/Logo/Marlin%20Logo%20GitHub.png" />
 # Marlin4Delta 3D Printer Firmware
  Documentation has moved to [marlinfirmware.org](http://www.marlinfirmware.org).
+
+## About this fork
+
+This fork is primarily destined for calibrating individual delta diagonal rod and horizontal radius parameters for dimensional accuracy of your prints. Also include parameters for towers rotation (angle mismatch).
+
+See the section Delta Settings in delta Configuration.h examples for more 
 
 ## Development Only
 
@@ -10,12 +15,6 @@ __Not for production use – use with caution!__
 This fork is from the [Marlin development branch](https://github.com/MarlinFirmware/MarlinDev/tree/dev) and DO NOT ALWAYS contains the most up-to-date Marlin code. I'll try to rebase it on the most up-to-date Marlin code from time to time. When reporting any issues, please check to see if they are resolved in the [Marlin development branch](https://github.com/MarlinFirmware/MarlinDev/tree/dev) first. But let me know if an update is available that can help you.
 
 For the latest tagged version of Marlin (currently 1.0.2 – January 2015) you should switch to the [Release Repository](https://github.com/MarlinFirmware/Marlin).
-
-## About this fork
-
-This fork is primarily destined for calibrating individual delta diagonal rod and horizontal radius parameters for dimensional accuracy of your prints. Also include parameters for towers rotation (angle mismatch).
-
-See the section Delta Settings in delta Configuration.h examples for more 
 
 ## Current Status: Bug Fixing
 
