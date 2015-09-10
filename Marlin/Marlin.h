@@ -1,3 +1,4 @@
+#pragma GCC optimize ("-O3")
 // Tonokip RepRap firmware rewrite based off of Hydra-mmm firmware.
 // License: GPL
 
