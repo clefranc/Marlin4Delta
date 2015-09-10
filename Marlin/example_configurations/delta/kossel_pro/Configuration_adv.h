@@ -7,6 +7,16 @@
 
 #include "Conditionals.h"
 
+// @section delta_optimization
+
+//===========================================================================
+//=========================== DELTA OPTIMIZATION  ===========================
+//===========================================================================
+
+// There is suttering when the LCD is updated, a workaround is to go to any
+// menu level, and do not return to the status screen automatically.
+#define LCD_RETURN_TO_STATUS false
+
 // @section temperature
 
 //===========================================================================
