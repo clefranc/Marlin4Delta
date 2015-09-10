@@ -1,6 +1,6 @@
 ---
 language: c
-sudo: false
+
 before_install:
   # Travis runs a detached head. We need to find the current branch
   - git checkout `git branch --contains HEAD | grep -v '*'`
