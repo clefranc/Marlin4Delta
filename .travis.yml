@@ -1,6 +1,22 @@
 ---
 language: c
 
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "ecxjErALfYahiqkEycVmTC/mDCA28HJd+donWH8S0LDDr14Kp2zY08xG/VXbTB48vzKbwtzCtkdOCj+ocfVdCxObilx3DdNyZbDbWgkd3fDBWu21XApb8nuSTb4aPPUw2Nd25FiszuFqN+WbSRG6Yp00W3iEOGrrnGfUmgqgDKAuw9J7eTix1081eKa5KZhRwdfoJVUrq89iONXsFQbOt9jLv7KtQXN+vtkwcaJYZT02dz/Z0SfkmCUjnnsb9JJkUi8jO4imHtMHMLcOk88V3B3LiwPWAKvWFkRBnpnibnRMYke4qMuXcsaHYaHXwICZV0OMigeqWFGWniM2wQLl1tb1LURoCKTzqW/uCa6Qtfu+1A8ByJkv02bpREUmuhrS9rXs6phD1S9/ngPfzWsv3/PoUcyzReXLF4d2ZuBG/grSKeDe7rewIIQRXQx9aBvver3notvI36clOygpxYk5ShsYny5jnFHpgUBtNHwjPgVOCaK3Ip+Sao9hoOFxMnoSuYA9/UcFqdyC481Tp2F0vECUcaLzdxxZ1GntqLUNS3MeowtbbN8JUxehkPlo9zxFDPKuPnPOLmBWZOBpLJg81dvrBPvyv0TyUmrhO1BkNHYwdhs/s+zu3E1l1yUrXwzK6e0LTRYVxHQCn3ngE2MJ5oVxpMUY9xuP0TxrjVvuLHo="
+
+addons:
+  coverity_scan:
+    project:
+      name: "clefranc/Marlin4Delta"
+      description: "Build submitted via Travis CI"
+    notification_email: clefranc@diffusionfermont.ca
+    build_command_prepend (Travis) -> COVERITY_SCAN_BUILD_COMMAND_PREPEND (Coverity)
+    build_command (Travis) -> COVERITY_SCAN_BUILD_COMMAND (Coverity)
+    branch_pattern: master
+
 before_install:
   # Travis runs a detached head. We need to find the current branch
   - git checkout `git branch --contains HEAD | grep -v '*'`
