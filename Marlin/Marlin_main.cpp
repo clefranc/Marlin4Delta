@@ -6551,17 +6551,144 @@ void mesh_plan_buffer_line(float x, float y, float z, const float e, float feed_
  *  smaller moves into the planner for DELTA or SCARA.)
  */
 void prepare_move() {
-  clamp_to_software_endstops(destination);
-  refresh_cmd_timeout();
+  // clamp_to_software_endstops(destination);
+  if (min_software_endstops) {
+    NOLESS(destination[X_AXIS], min_pos[X_AXIS]);
+    NOLESS(destination[Y_AXIS], min_pos[Y_AXIS]);
+
+    float negative_z_offset = 0;
+    #if ENABLED(AUTO_BED_LEVELING_FEATURE)
+      if (zprobe_zoffset < 0) negative_z_offset += zprobe_zoffset;
+      if (home_offset[Z_AXIS] < 0) {
+        #if ENABLED(DEBUG_LEVELING_FEATURE)
+          if (marlin_debug_flags & DEBUG_LEVELING) {
+            SERIAL_ECHOPAIR("> clamp_to_software_endstops > Add home_offset[Z_AXIS]:", home_offset[Z_AXIS]);
+            SERIAL_EOL;
+          }
+        #endif
+        negative_z_offset += home_offset[Z_AXIS];
+      }
+    #endif
+    NOLESS(destination[Z_AXIS], min_pos[Z_AXIS] + negative_z_offset);
+  }
+
+  if (max_software_endstops) {
+    NOMORE(destination[X_AXIS], max_pos[X_AXIS]);
+    NOMORE(destination[Y_AXIS], max_pos[Y_AXIS]);
+    NOMORE(destination[Z_AXIS], max_pos[Z_AXIS]);
+  }
+  
+  previous_cmd_ms = millis();
 
   #if ENABLED(PREVENT_DANGEROUS_EXTRUDE)
-    prevent_dangerous_extrude(current_position[E_AXIS], destination[E_AXIS]);
+    // prevent_dangerous_extrude(current_position[E_AXIS], destination[E_AXIS]);
+    if (!(marlin_debug_flags & DEBUG_DRYRUN)) {
+      float de = destination[E_AXIS] - current_position[E_AXIS];
+      if (de) {
+        if (degHotend(active_extruder) < extrude_min_temp) {
+          current_position[E_AXIS] = destination[E_AXIS]; // Behave as if the move really took place, but ignore E part
+          SERIAL_ECHO_START;
+          SERIAL_ECHOLNPGM(MSG_ERR_COLD_EXTRUDE_STOP);
+        }
+        #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
+          if (labs(de) > EXTRUDE_MAXLENGTH) {
+            current_position[E_AXIS] = destination[E_AXIS]; // Behave as if the move really took place, but ignore E part
+            SERIAL_ECHO_START;
+            SERIAL_ECHOLNPGM(MSG_ERR_LONG_EXTRUDE_STOP);
+          }
+        #endif
+      }
+    }
   #endif
 
   #if ENABLED(SCARA)
     if (!prepare_move_scara(destination)) return;
   #elif ENABLED(DELTA)
-    if (!prepare_move_delta(destination)) return;
+    // if (!prepare_move_delta(destination)) return;
+    float frfm = feedrate/60*feedrate_multiplier/100.0;
+    float calc_delta;
+    float difference[NUM_AXIS];
+    for (int8_t i=0; i < NUM_AXIS; i++) difference[i] = destination[i] - current_position[i];
+
+    float cartesian_mm = sqrt(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
+    if (cartesian_mm < 0.000001) cartesian_mm = abs(difference[E_AXIS]);
+    if (cartesian_mm < 0.000001) return;
+    float seconds = 6000 * cartesian_mm / feedrate / feedrate_multiplier;
+    int steps = max(1, int(delta_segments_per_second * seconds));
+
+    // SERIAL_ECHOPGM("mm="); SERIAL_ECHO(cartesian_mm);
+    // SERIAL_ECHOPGM(" seconds="); SERIAL_ECHO(seconds);
+    // SERIAL_ECHOPGM(" steps="); SERIAL_ECHOLN(steps);
+
+    for (int s = 1; s <= steps; s++) {
+
+      float fraction = float(s) / float(steps);
+
+      destination[X_AXIS] = current_position[X_AXIS] + difference[X_AXIS] * fraction;
+      destination[Y_AXIS] = current_position[Y_AXIS] + difference[Y_AXIS] * fraction;
+      destination[Z_AXIS] = current_position[Z_AXIS] + difference[Z_AXIS] * fraction;
+      destination[E_AXIS] = current_position[E_AXIS] + difference[E_AXIS] * fraction;
+
+      // calculate_delta(target);
+      calc_delta = delta_tower_a_x - destination[X_AXIS];
+      calc_delta = calc_delta * calc_delta;
+      delta[X_AXIS] = delta_diagonal_rod_a_2 - calc_delta;
+      calc_delta = delta_tower_a_y - destination[Y_AXIS];
+      calc_delta = calc_delta * calc_delta;
+      delta[X_AXIS] -= calc_delta;
+      delta[X_AXIS] = sqrt(delta[X_AXIS]);
+      delta[X_AXIS] += destination[Z_AXIS];
+                         
+      calc_delta = delta_tower_b_x - destination[X_AXIS];
+      calc_delta = calc_delta * calc_delta;
+      delta[Y_AXIS] = delta_diagonal_rod_b_2 - calc_delta;
+      calc_delta = delta_tower_b_y - destination[Y_AXIS];
+      calc_delta = calc_delta * calc_delta;
+      delta[Y_AXIS] -= calc_delta;
+      delta[Y_AXIS] = sqrt(delta[Y_AXIS]);
+      delta[Y_AXIS] += destination[Z_AXIS];
+                         
+      calc_delta = delta_tower_c_x - destination[X_AXIS];
+      calc_delta = calc_delta * calc_delta;
+      delta[Z_AXIS] = delta_diagonal_rod_c_2 - calc_delta;
+      calc_delta = delta_tower_c_y - destination[Y_AXIS];
+      calc_delta = calc_delta * calc_delta;
+      delta[Z_AXIS] -= calc_delta;
+      delta[Z_AXIS] = sqrt(delta[Z_AXIS]);
+      delta[Z_AXIS] += destination[Z_AXIS];
+
+      #if ENABLED(AUTO_BED_LEVELING_FEATURE)
+      // adjust_delta(target);
+      if (!(delta_grid_spacing[0] == 0 || delta_grid_spacing[1] == 0)) { // G29 not done!
+        int half = (AUTO_BED_LEVELING_GRID_POINTS - 1) / 2;
+        float h1 = 0.001 - half, h2 = half - 0.001,
+              grid_x = max(h1, min(h2, destination[X_AXIS] / delta_grid_spacing[0])),
+              grid_y = max(h1, min(h2, destination[Y_AXIS] / delta_grid_spacing[1]));
+        int floor_x = floor(grid_x), floor_y = floor(grid_y);
+        float ratio_x = grid_x - floor_x, ratio_y = grid_y - floor_y,
+              z1 = bed_level[floor_x + half][floor_y + half],
+              z2 = bed_level[floor_x + half][floor_y + half + 1],
+              z3 = bed_level[floor_x + half + 1][floor_y + half],
+              z4 = bed_level[floor_x + half + 1][floor_y + half + 1],
+              left = (1 - ratio_y) * z1 + ratio_y * z2,
+              right = (1 - ratio_y) * z3 + ratio_y * z4,
+              offset = (1 - ratio_x) * left + ratio_x * right;
+
+        delta[X_AXIS] += offset;
+        delta[Y_AXIS] += offset;
+        delta[Z_AXIS] += offset;
+      }
+      #endif
+
+      //SERIAL_ECHOPGM("destination[X_AXIS]="); SERIAL_ECHOLN(destination[X_AXIS]);
+      //SERIAL_ECHOPGM("destination[Y_AXIS]="); SERIAL_ECHOLN(destination[Y_AXIS]);
+      //SERIAL_ECHOPGM("destination[Z_AXIS]="); SERIAL_ECHOLN(destination[Z_AXIS]);
+      //SERIAL_ECHOPGM("delta[X_AXIS]="); SERIAL_ECHOLN(delta[X_AXIS]);
+      //SERIAL_ECHOPGM("delta[Y_AXIS]="); SERIAL_ECHOLN(delta[Y_AXIS]);
+      //SERIAL_ECHOPGM("delta[Z_AXIS]="); SERIAL_ECHOLN(delta[Z_AXIS]);
+
+      plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], destination[E_AXIS], frfm, active_extruder);
+    }
   #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)
@@ -6572,7 +6699,10 @@ void prepare_move() {
     if (!prepare_move_cartesian()) return;
   #endif
 
-  set_current_to_destination();
+  // set_current_to_destination();
+  current_position[X_AXIS] = destination[X_AXIS];
+  current_position[Y_AXIS] = destination[Y_AXIS];
+  current_position[Z_AXIS] = destination[Z_AXIS];
 }
 
 /**
