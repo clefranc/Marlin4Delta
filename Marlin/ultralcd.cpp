@@ -1677,6 +1677,7 @@ void lcd_update() {
     #if ENABLED(ULTIPANEL)
 
       // Return to Status Screen after a timeout
+      #if !ENABLED(LCD_NO_RETURN_TO_STATUS)
       if (currentMenu != lcd_status_screen &&
         #if ENABLED(MANUAL_BED_LEVELING)
           currentMenu != _lcd_level_bed &&
@@ -1687,6 +1688,7 @@ void lcd_update() {
         lcd_return_to_status();
         lcdDrawUpdate = 2;
       }
+      #endif // LCD_NO_RETURN_TO_STATUS
 
     #endif // ULTIPANEL
 
