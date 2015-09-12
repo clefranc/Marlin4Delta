@@ -6666,32 +6666,32 @@ void prepare_move() {
       destination[E_AXIS] = current_position[E_AXIS] + difference[E_AXIS] * fraction;
 
       // calculate_delta(target);
-      calc_delta = delta_tower_a_x - destination[X_AXIS];
+      calc_delta = delta_tower_a_x - destination[X_AXIS] + extruder_offset[X_AXIS][active_extruder];
       calc_delta = calc_delta * calc_delta;
       delta[X_AXIS] = delta_diagonal_rod_a_2 - calc_delta;
-      calc_delta = delta_tower_a_y - destination[Y_AXIS];
+      calc_delta = delta_tower_a_y - destination[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder];
       calc_delta = calc_delta * calc_delta;
       delta[X_AXIS] -= calc_delta;
       delta[X_AXIS] = sqrt(delta[X_AXIS]);
-      delta[X_AXIS] += destination[Z_AXIS];
+      delta[X_AXIS] += destination[Z_AXIS] - delta_z_offset;
                          
-      calc_delta = delta_tower_b_x - destination[X_AXIS];
+      calc_delta = delta_tower_b_x - destination[X_AXIS] + extruder_offset[X_AXIS][active_extruder];
       calc_delta = calc_delta * calc_delta;
       delta[Y_AXIS] = delta_diagonal_rod_b_2 - calc_delta;
-      calc_delta = delta_tower_b_y - destination[Y_AXIS];
+      calc_delta = delta_tower_b_y - destination[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder];
       calc_delta = calc_delta * calc_delta;
       delta[Y_AXIS] -= calc_delta;
       delta[Y_AXIS] = sqrt(delta[Y_AXIS]);
-      delta[Y_AXIS] += destination[Z_AXIS];
+      delta[Y_AXIS] += destination[Z_AXIS] - delta_z_offset;
                          
-      calc_delta = delta_tower_c_x - destination[X_AXIS];
+      calc_delta = delta_tower_c_x - destination[X_AXIS] + extruder_offset[X_AXIS][active_extruder];
       calc_delta = calc_delta * calc_delta;
       delta[Z_AXIS] = delta_diagonal_rod_c_2 - calc_delta;
-      calc_delta = delta_tower_c_y - destination[Y_AXIS];
+      calc_delta = delta_tower_c_y - destination[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder];
       calc_delta = calc_delta * calc_delta;
       delta[Z_AXIS] -= calc_delta;
       delta[Z_AXIS] = sqrt(delta[Z_AXIS]);
-      delta[Z_AXIS] += destination[Z_AXIS];
+      delta[Z_AXIS] += destination[Z_AXIS] - delta_z_offset;
 
       #if ENABLED(AUTO_BED_LEVELING_FEATURE)
       // adjust_delta(target);
