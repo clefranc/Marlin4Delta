@@ -1688,7 +1688,7 @@ void lcd_update() {
         lcd_return_to_status();
         lcdDrawUpdate = 2;
       }
-      #endif // LCD_RETURN_TO_STATUS
+      #endif // LCD_NO_RETURN_TO_STATUS
 
     #endif // ULTIPANEL
 
