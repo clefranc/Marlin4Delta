@@ -71,7 +71,7 @@
  *  - http://objects.reprap.org/wiki/Mendel_User_Manual:_RepRapGCodes
  *
  * Help us document these G-codes online:
- *  - http://www.marlinfirmware.org/index.php/G-Code
+ *  - http://marlinfirmware.org/index.php/G-Code
  *  - http://reprap.org/wiki/G-code
  *
  * -----------------
@@ -415,6 +415,10 @@ bool target_direction;
 #ifdef CHDK
   unsigned long chdkHigh = 0;
   boolean chdkActive = false;
+#endif
+
+#if ENABLED(PID_ADD_EXTRUSION_RATE)
+  int lpq_len = 20;
 #endif
 
 //===========================================================================
@@ -1385,6 +1389,7 @@ static void setup_for_endstop_move() {
   inline void do_blocking_move_to_xy(float x, float y) { do_blocking_move_to(x, y, current_position[Z_AXIS]); }
   inline void do_blocking_move_to_x(float x) { do_blocking_move_to(x, current_position[Y_AXIS], current_position[Z_AXIS]); }
   inline void do_blocking_move_to_z(float z) { do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], z); }
+  inline void raise_z_after_probing() { do_blocking_move_to_z(current_position[Z_AXIS] + Z_RAISE_AFTER_PROBING); }
 
   static void clean_up_after_endstop_move() {
     #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
@@ -1515,11 +1520,11 @@ static void setup_for_endstop_move() {
               if (marlin_debug_flags & DEBUG_LEVELING) {
                 SERIAL_ECHOPAIR("Raise Z (after) by ", (float)Z_RAISE_AFTER_PROBING);
                 SERIAL_EOL;
-                SERIAL_ECHOPAIR("> SERVO_ENDSTOPS > do_blocking_move_to_z ", current_position[Z_AXIS] + Z_RAISE_AFTER_PROBING);
+                SERIAL_ECHOPAIR("> SERVO_ENDSTOPS > raise_z_after_probing()");
                 SERIAL_EOL;
               }
             #endif
-            do_blocking_move_to_z(current_position[Z_AXIS] + Z_RAISE_AFTER_PROBING); // this also updates current_position
+            raise_z_after_probing(); // this also updates current_position
             st_synchronize();
           }
         #endif
@@ -1791,7 +1796,7 @@ static void setup_for_endstop_move() {
     float oldXpos = current_position[X_AXIS]; // save x position
     if (dock) {
       #if Z_RAISE_AFTER_PROBING > 0
-        do_blocking_move_to_z(current_position[Z_AXIS] + Z_RAISE_AFTER_PROBING); // raise Z
+        raise_z_after_probing(); // raise Z
       #endif
       do_blocking_move_to_x(X_MAX_POS + SLED_DOCKING_OFFSET + offset - 1);  // Dock sled a bit closer to ensure proper capturing
       digitalWrite(SLED_PIN, LOW); // turn off magnet
@@ -3158,7 +3163,14 @@ inline void gcode_G28() {
 
     #endif // !AUTO_BED_LEVELING_GRID
 
-    #if DISABLED(DELTA)
+    #if ENABLED(DELTA)
+      // Allen Key Probe for Delta
+      #if ENABLED(Z_PROBE_ALLEN_KEY)
+        stow_z_probe();
+      #elif Z_RAISE_AFTER_PROBING > 0
+        raise_z_after_probing();
+      #endif
+    #else // !DELTA
       if (verbose_level > 0)
         plan_bed_level_matrix.debug(" \n\nBed Level Correction Matrix:");
 
@@ -3219,13 +3231,13 @@ inline void gcode_G28() {
           }
         #endif
       }
-    #endif // !DELTA
 
-    #if ENABLED(Z_PROBE_SLED)
-      dock_sled(true); // dock the Z probe
-    #elif ENABLED(Z_PROBE_ALLEN_KEY) //|| SERVO_LEVELING
-      stow_z_probe();
-    #endif
+      // Sled assembly for Cartesian bots
+      #if ENABLED(Z_PROBE_SLED)
+        dock_sled(true); // dock the sled
+      #endif
+
+    #endif // !DELTA
 
     #ifdef Z_PROBE_END_SCRIPT
       #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -4800,7 +4812,16 @@ inline void gcode_M226() {
 #if ENABLED(PIDTEMP)
 
   /**
-   * M301: Set PID parameters P I D (and optionally C)
+   * M301: Set PID parameters P I D (and optionally C, L)
+   *
+   *   P[float] Kp term
+   *   I[float] Ki term (unscaled)
+   *   D[float] Kd term (unscaled)
+   *
+   * With PID_ADD_EXTRUSION_RATE:
+   *
+   *   C[float] Kc term
+   *   L[float] LPQ length
    */
   inline void gcode_M301() {
 
@@ -4814,6 +4835,8 @@ inline void gcode_M226() {
       if (code_seen('D')) PID_PARAM(Kd, e) = scalePID_d(code_value());
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         if (code_seen('C')) PID_PARAM(Kc, e) = code_value();
+        if (code_seen('L')) lpq_len = code_value();
+        NOMORE(lpq_len, LPQ_MAX_LEN);
       #endif
 
       updatePID();
@@ -7123,7 +7146,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     // Check to see if we have to home, use poor man's debouncer
     // ---------------------------------------------------------
     static int homeDebounceCount = 0;   // poor man's debouncing count
-    const int HOME_DEBOUNCE_DELAY = 750;
+    const int HOME_DEBOUNCE_DELAY = 2500;
     if (!READ(HOME_PIN)) {
       if (!homeDebounceCount) {
         enqueuecommands_P(PSTR("G28"));
