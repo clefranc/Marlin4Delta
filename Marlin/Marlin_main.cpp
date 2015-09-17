@@ -355,6 +355,7 @@ bool target_direction;
   float delta[3] = { 0 };
   float delta_z_offset = 0;
   float endstop_adj[3] = { 0 };
+  float delta_carriage_max_height[3] = { 0 };
   // These are the default values, can be overriden with M665.
   float delta_alpha_ca = DELTA_ALPHA_CA;
   float delta_alpha_cb = DELTA_ALPHA_CB;
@@ -2269,7 +2270,8 @@ inline void gcode_G28() {
     // A delta can only safely home all axis at the same time,
     // all axis have to home at the same time.
 
-    // First, remove all offsets (Z and extruder(s)) for following delta calculation.
+    // First, save the current active extruder offset,
+    // then remove all offsets (delta Z and active extruder) for the following delta calculations.
     float previous_extruder_x_offset = extruder_offset[X_AXIS][active_extruder];
     float previous_extruder_y_offset = extruder_offset[Y_AXIS][active_extruder];
     for (int i = X_AXIS; i <= Y_AXIS; i++) extruder_offset[i][active_extruder] = 0;
@@ -2277,7 +2279,7 @@ inline void gcode_G28() {
 
     // Pretend the current position is 0,0,0.
     for (int i = X_AXIS; i <= Z_AXIS; i++) current_position[i] = 0;
-    sync_plan_position();
+    sync_plan_position(); // Pretend also that the carriages height are all 0 (impossible).
 
     // Move all carriages up together until the first endstop is hit.
     for (int i = X_AXIS; i <= Z_AXIS; i++) destination[i] = 3 * Z_MAX_LENGTH;
@@ -2287,42 +2289,39 @@ inline void gcode_G28() {
     endstops_hit_on_purpose(); // clear endstop hit flags
 
     // Destination reached.
-    set_current_to_destination();
+    set_current_to_destination(); // Set destination back to 0,0,0.
 
     // Take care of back off and rehome now we are all at the top.
     HOMEAXIS(X);
     HOMEAXIS(Y);
     HOMEAXIS(Z);
 
+    // Set the new position of the carriages and disable endstops.
     sync_plan_position_delta();
-    endstops_hit_on_purpose(); // clear endstop hit flags
+    clean_up_after_endstop_move();
 
-    // Save the current carriages height in mm from 0,0 cartesian positions.
+    // Save the maximum carriages height from 0,0 cartesian positions, without any offset.
     // It'll be used to calculate the top carriages clearance needed after applying extruder offset.
     calculate_delta(current_position);
-    float delta_before_offset[3];
-    for (int i = X_AXIS; i <= Z_AXIS; i++) delta_before_offset[i] = delta[i];
+    for (int i = X_AXIS; i <= Z_AXIS; i++) delta_carriage_max_height[i] = delta[i];
 
     // Reapply extruder offset.
     extruder_offset[X_AXIS][active_extruder] = previous_extruder_x_offset;
     extruder_offset[Y_AXIS][active_extruder] = previous_extruder_y_offset;
 
-    // Get the new carriages height in mm after the offset and find maximum tower distance.
+    // Get the new carriages height after the offset and find maximum tower distance.
     calculate_delta(current_position);
-    delta_z_offset = max(delta[X_AXIS] - delta_before_offset[X_AXIS], max(delta[Y_AXIS] - delta_before_offset[Y_AXIS], delta[Z_AXIS] - delta_before_offset[Z_AXIS]));
+    delta_z_offset = max(delta[X_AXIS] - delta_carriage_max_height[X_AXIS], max(delta[Y_AXIS] - delta_carriage_max_height[Y_AXIS], delta[Z_AXIS] - delta_carriage_max_height[Z_AXIS]));
 
-    // Recalculate the carriages height in mm after the delta Z offset found,
-    // and move to the new position, the carriages WILL go down only.
-    calculate_delta(current_position);
-    plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], current_position[E_AXIS], homing_feedrate[Z_AXIS], active_extruder);
+    // Move to the new position with delta Z offset, the carriages WILL go down only.
+    plan_buffer_line(delta[X_AXIS] - delta_z_offset, delta[Y_AXIS] - delta_z_offset, delta[Z_AXIS] - delta_z_offset, current_position[E_AXIS], homing_feedrate[Z_AXIS], active_extruder);
     st_synchronize();
 
-    // Reapply extruder offset and delta Z offet to current position for centered printing.
-    current_position[X_AXIS] -= extruder_offset[X_AXIS][active_extruder];
-    current_position[Y_AXIS] -= extruder_offset[X_AXIS][active_extruder];
+    // Reapply extruder delta Z offet to current position for centered printing.
     current_position[Z_AXIS] -= delta_z_offset;
     set_destination_to_current();
-    
+
+    // Set final position for the carriages.
     sync_plan_position_delta();
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -6343,15 +6342,15 @@ void clamp_to_software_endstops(float target[3]) {
     delta[X_AXIS] = sqrt(delta_diagonal_rod_a_2
                          - sq(delta_tower_a_x - cartesian[X_AXIS] + extruder_offset[X_AXIS][active_extruder])
                          - sq(delta_tower_a_y - cartesian[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder])
-                         ) + cartesian[Z_AXIS] - delta_z_offset;
+                         ) + cartesian[Z_AXIS];
     delta[Y_AXIS] = sqrt(delta_diagonal_rod_b_2
                          - sq(delta_tower_b_x - cartesian[X_AXIS] + extruder_offset[X_AXIS][active_extruder])
                          - sq(delta_tower_b_y - cartesian[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder])
-                         ) + cartesian[Z_AXIS] - delta_z_offset;
+                         ) + cartesian[Z_AXIS];
     delta[Z_AXIS] = sqrt(delta_diagonal_rod_c_2
                          - sq(delta_tower_c_x - cartesian[X_AXIS] + extruder_offset[X_AXIS][active_extruder])
                          - sq(delta_tower_c_y - cartesian[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder])
-                         ) + cartesian[Z_AXIS] - delta_z_offset;
+                         ) + cartesian[Z_AXIS];
     /*
     SERIAL_ECHOPGM("cartesian x="); SERIAL_ECHO(cartesian[X_AXIS]);
     SERIAL_ECHOPGM(" y="); SERIAL_ECHO(cartesian[Y_AXIS]);
@@ -6696,7 +6695,7 @@ void prepare_move() {
       calc_delta = calc_delta * calc_delta;
       delta[X_AXIS] -= calc_delta;
       delta[X_AXIS] = sqrt(delta[X_AXIS]);
-      delta[X_AXIS] += destination[Z_AXIS] - delta_z_offset;
+      delta[X_AXIS] += destination[Z_AXIS];
                          
       calc_delta = delta_tower_b_x - destination[X_AXIS] + extruder_offset[X_AXIS][active_extruder];
       calc_delta = calc_delta * calc_delta;
@@ -6705,7 +6704,7 @@ void prepare_move() {
       calc_delta = calc_delta * calc_delta;
       delta[Y_AXIS] -= calc_delta;
       delta[Y_AXIS] = sqrt(delta[Y_AXIS]);
-      delta[Y_AXIS] += destination[Z_AXIS] - delta_z_offset;
+      delta[Y_AXIS] += destination[Z_AXIS];
                          
       calc_delta = delta_tower_c_x - destination[X_AXIS] + extruder_offset[X_AXIS][active_extruder];
       calc_delta = calc_delta * calc_delta;
@@ -6714,7 +6713,7 @@ void prepare_move() {
       calc_delta = calc_delta * calc_delta;
       delta[Z_AXIS] -= calc_delta;
       delta[Z_AXIS] = sqrt(delta[Z_AXIS]);
-      delta[Z_AXIS] += destination[Z_AXIS] - delta_z_offset;
+      delta[Z_AXIS] += destination[Z_AXIS];
 
       #if ENABLED(AUTO_BED_LEVELING_FEATURE)
       // adjust_delta(target);
