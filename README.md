@@ -7,9 +7,11 @@ Documentation has moved to [marlinfirmware.org](http://www.marlinfirmware.org).
 
 ## About this fork
 
-This fork is primarily destined for calibrating individual delta diagonal rod and horizontal radius parameters for dimensional accuracy of your prints. Also include parameters for towers rotation (angle mismatch).
+This fork is primarily destined for calibrating individual delta diagonal rod and horizontal radius parameters for dimensional accuracy of your prints. Also include parameters for towers rotation (angle mismatch). See the section [Delta Settings](https://github.com/clefranc/Marlin4Delta/blob/master/Marlin/example_configurations/delta/biv2.5/Configuration.h#L315) in delta Configuration.h examples for instructions.
 
-See the section [Delta Settings](https://github.com/clefranc/Marlin4Delta/blob/master/Marlin/example_configurations/delta/biv2.5/Configuration.h#L315) in delta Configuration.h examples for instructions.
+The hotend offset (if used) are properly implemented after homing and when printing.
+
+When printing, menu will not return automatically to the status screen. Useful for eliminating stuttering with high segments per second.
 
 ## Development Only
 
