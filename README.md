@@ -8,6 +8,13 @@ Thank you!
 <img align="top" width=175 src="Documentation/Logo/Marlin%20Logo%20GitHub.png" />
  Documentation has moved to [marlinfirmware.org](http://www.marlinfirmware.org).
 
+## Specifics
+
+* M665 command have been updated
+* The EEPROM code have been updated
+
+See the [wiki](https://github.com/clefranc/Marlin4Delta/wiki) (not completed yet) for more information.
+
 ## Development Only
 
 __Not for production use – use with caution!__
