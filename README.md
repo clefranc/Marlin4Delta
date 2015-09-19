@@ -12,6 +12,9 @@ Thank you!
 
 * M665 command have been updated
 * The EEPROM code have been updated
+* Added G131 command (remove active extruder offset)
+* Added G132 command (calibrate endstops offset)
+* Added M99 command (disable stepper motor(s) for X seconds)
 
 See the [wiki](https://github.com/clefranc/Marlin4Delta/wiki) (not completed yet) for more information.
 
