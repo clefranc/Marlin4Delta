@@ -129,6 +129,7 @@
  *        or use S<seconds> to specify an inactivity timeout, after which the steppers will be disabled.  S0 to disable the timeout.
  * M85  - Set inactivity shutdown timer with parameter S<seconds>. To disable set zero (default)
  * M92  - Set axis_steps_per_unit - same syntax as G92
+ * M99  - Disable stepper motor(s) for X seconds (default 10s)
  * M104 - Set extruder target temp
  * M105 - Read current temp
  * M106 - Fan on
