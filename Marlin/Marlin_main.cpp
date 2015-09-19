@@ -80,21 +80,23 @@
  *
  * "G" Codes
  *
- * G0  -> G1
- * G1  - Coordinated Movement X Y Z E
- * G2  - CW ARC
- * G3  - CCW ARC
- * G4  - Dwell S<seconds> or P<milliseconds>
- * G10 - retract filament according to settings of M207
- * G11 - retract recover filament according to settings of M208
- * G28 - Home one or more axes
- * G29 - Detailed Z probe, probes the bed at 3 or more points.  Will fail if you haven't homed yet.
- * G30 - Single Z probe, probes bed at current XY location.
- * G31 - Dock sled (Z_PROBE_SLED only)
- * G32 - Undock sled (Z_PROBE_SLED only)
- * G90 - Use Absolute Coordinates
- * G91 - Use Relative Coordinates
- * G92 - Set current position to coordinates given
+ * G0   -> G1
+ * G1   - Coordinated Movement X Y Z E
+ * G2   - CW ARC
+ * G3   - CCW ARC
+ * G4   - Dwell S<seconds> or P<milliseconds>
+ * G10  - retract filament according to settings of M207
+ * G11  - retract recover filament according to settings of M208
+ * G28  - Home one or more axes
+ * G29  - Detailed Z probe, probes the bed at 3 or more points.  Will fail if you haven't homed yet.
+ * G30  - Single Z probe, probes bed at current XY location.
+ * G31  - Dock sled (Z_PROBE_SLED only)
+ * G32  - Undock sled (Z_PROBE_SLED only)
+ * G90  - Use Absolute Coordinates
+ * G91  - Use Relative Coordinates
+ * G92  - Set current position to coordinates given
+ * G131 - Remove active extruder offset (center effector)
+ * G132 - Calibrate endstops offset
  *
  * "M" Codes
  *
@@ -3323,6 +3325,101 @@ inline void gcode_G92() {
 
 #if ENABLED(ULTIPANEL)
 
+#if ENABLED(DELTA)
+  /**
+   * G131: Remove active extruder offset (center effector)
+   */
+  inline void gcode_G131() {
+    // Wait for planner moves to finish!
+    st_synchronize();
+
+    // Remove the active nozzle x/y offset.
+    for (int i = X_AXIS; i <= Y_AXIS; i++) current_position[i] = extruder_offset[i][active_extruder];
+
+    // Center the effector over the bed.
+    calculate_delta(current_position);
+    plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], current_position[E_AXIS], homing_feedrate[Z_AXIS], active_extruder);
+    st_synchronize();
+    set_destination_to_current();
+  }
+   
+  /**
+  * G132: Calibrate endstop offsets
+  */
+  inline void gcode_G132() {
+
+    // Wait for planner moves to finish!
+    st_synchronize();
+
+    // For auto bed leveling, clear the level matrix
+    #if ENABLED(AUTO_BED_LEVELING_FEATURE)
+      plan_bed_level_matrix.set_to_identity();
+      #if ENABLED(DELTA)
+        reset_bed_level();
+      #endif
+    #endif
+
+    // For manual bed leveling deactivate the matrix temporarily
+    #if ENABLED(MESH_BED_LEVELING)
+      uint8_t mbl_was_active = mbl.active;
+      mbl.active = 0;
+    #endif
+
+    // Prepare move.
+    setup_for_endstop_move();
+    set_destination_to_current();
+    feedrate = 0.0;
+
+    // Remove current endstops offset.
+    for (int i = X_AXIS; i <= Z_AXIS; i++) endstop_adj[i] = 0;
+
+    // Pretend the current position is 0,0.
+    for (int i = X_AXIS; i <= Z_AXIS; i++) current_position[i] = 0;
+    sync_plan_position_delta(); // Pretend also that the carriages height are all 0 (impossible).
+
+    // Move all carriages upwards until the first endstop is hit.
+    for (int i = X_AXIS; i <= Z_AXIS; i++) destination[i] = 3 * Z_MAX_LENGTH;
+    feedrate = 0.25 * homing_feedrate[Z_AXIS];
+    line_to_destination();
+    st_synchronize();
+
+    // Reset the new position of the carriages.
+    plan_set_position(0, 0, 0, current_position[E_AXIS]);
+
+    bool skip_tower_check;
+
+    // Move each carriage towards its endstop and measure offset.
+    for (int i = X_AXIS; i <= Z_AXIS; i++) {
+      skip_tower_check = false;
+      // Skip the offset measurement if the carriage already reached its endstop.
+      switch(i) {
+        case X_AXIS:
+          if (READ(X_MAX_PIN)^X_MAX_ENDSTOP_INVERTING) skip_tower_check = true;
+          break;
+
+        case Y_AXIS:
+          if (READ(Y_MAX_PIN)^Y_MAX_ENDSTOP_INVERTING) skip_tower_check = true;
+          break;
+
+        case Z_AXIS:
+          if (READ(Z_MAX_PIN)^Z_MAX_ENDSTOP_INVERTING) skip_tower_check = true;
+          break;
+      }
+      if (!skip_tower_check) {
+        // Move carriage upwards until its endstop is triggered.
+        delta[i] = Z_MAX_LENGTH;
+        plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], current_position[E_AXIS], feedrate * 0.01, active_extruder);
+        st_synchronize();
+        // Save the new endstop offset.
+        endstop_adj[i] = 0 - st_get_position_mm((AxisEnum)i);        
+      }
+    }
+
+    // Home!
+    gcode_G28();
+  }
+#endif // DELTA
+
   /**
    * M0: // M0 - Unconditional stop - Wait for user button press on LCD
    * M1: // M1 - Conditional stop - Wait for user button press on LCD
@@ -3821,6 +3918,31 @@ inline void gcode_M42() {
   }
 
 #endif // AUTO_BED_LEVELING_FEATURE && Z_MIN_PROBE_REPEATABILITY_TEST
+
+#if ENABLED(DELTA)
+  /**
+   * M99: Disable stepper motor(s) for X seconds (default 10s).
+   */
+  inline void gcode_M99() {
+    millis_t codenum = 10 * 1000;
+    if (code_seen('S')) codenum = code_value() * 1000; // Seconds to wait.
+    st_synchronize();
+
+    if (code_seen('X')) disable_x();
+    if (code_seen('Y')) disable_y();
+    if (code_seen('Z')) disable_z();
+
+    refresh_cmd_timeout();
+    codenum += previous_cmd_ms;  // Keep track of when we started waiting.
+    if ((code_seen(axis_codes[X_AXIS])) || (code_seen(axis_codes[Y_AXIS])) || (code_seen(axis_codes[Z_AXIS]))) {
+      while (millis() < codenum) idle(); // Wait before enabling stepper motor(s) back.
+    }
+
+    if (code_seen('X')) enable_x();
+    if (code_seen('Y')) enable_y();
+    if (code_seen('Z')) enable_z();
+  }
+#endif // DELTA
 
 /**
  * M104: Set hot end temperature
@@ -5812,6 +5934,7 @@ void process_next_command() {
       case 90: // G90
         relative_mode = false;
         break;
+        
       case 91: // G91
         relative_mode = true;
         break;
@@ -5819,6 +5942,16 @@ void process_next_command() {
       case 92: // G92
         gcode_G92();
         break;
+
+      #if ENABLED(DELTA)
+        case 131: // G131
+        gcode_G131();
+        break;
+        
+        case 132: // G132
+        gcode_G132();
+        break;
+      #endif // DELTA
     }
     break;
 
@@ -5884,6 +6017,12 @@ void process_next_command() {
           gcode_M48();
           break;
       #endif // AUTO_BED_LEVELING_FEATURE && Z_MIN_PROBE_REPEATABILITY_TEST
+
+      #if ENABLED(DELTA)
+        case 99: // Disable stepper motor(s) for X seconds (default 10s).
+          gcode_M99();
+          break;
+      #endif
 
       #if ENABLED(M100_FREE_MEMORY_WATCHER)
         case 100:
