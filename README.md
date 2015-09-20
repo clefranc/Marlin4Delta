@@ -5,6 +5,12 @@
 
 Documentation has moved to [marlinfirmware.org](http://www.marlinfirmware.org).
 
+## About this branch
+
+This is my personal Boots Industries BI V2.5 delta printer Marlin4Delta branch. I've made so many and radical modifications to this printer that nobody can use my configuration.
+
+**Use the [`master`](https://github.com/clefranc/Marlin4Delta/tree/master) branch instead.**
+
 ## About this fork
 
 This fork is primarily destined for calibrating individual delta diagonal rod and horizontal radius parameters for dimensional accuracy of your prints. Also include parameters for towers rotation (angle mismatch). See the section [Delta Settings](https://github.com/clefranc/Marlin4Delta/blob/master/Marlin/example_configurations/delta/biv2.5/Configuration.h#L315) in delta Configuration.h examples for instructions.
