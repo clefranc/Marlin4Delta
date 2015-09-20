@@ -216,24 +216,28 @@ static void lcd_implementation_init() {
   u8g.setRot270();  // Rotate screen by 270°
 #endif
 #if ENABLED(SHOW_BOOTSCREEN)
-  int offx = (u8g.getWidth() - START_BMPWIDTH) / 2;
+  int bmpPositiontX = (u8g.getWidth() - START_BMPWIDTH) / 2;
 #if ENABLED(START_BMPHIGH)
-  int offy = 0;
+  int bmpPositiontY = 0; // pixel
+  int txtOffsetX = -15; // pixel
+  int txtOffsetY = -39; // pixel
 #else
-  int offy = DOG_CHAR_HEIGHT;
+  int bmpPositiontY = 4; // pixel
+  int txtOffsetX = 0; // pixel
+  int txtOffsetY = 0; // pixel
 #endif
-  int txt1X = (u8g.getWidth() - (sizeof(STRING_SPLASH_LINE1) - 1) * DOG_CHAR_WIDTH) / 2;
+  int txtLine1PositionX = (u8g.getWidth() - (sizeof(STRING_SPLASH_LINE1) - 1) * DOG_CHAR_WIDTH) / 2 + txtOffsetX;
   u8g.firstPage();
   do {
     if (show_bootscreen) {
-      u8g.drawBitmapP(offx, offy, START_BMPBYTEWIDTH, START_BMPHEIGHT, start_bmp);
+      u8g.drawBitmapP(bmpPositiontX, bmpPositiontY, START_BMPBYTEWIDTH, START_BMPHEIGHT, start_bmp);
       lcd_setFont(FONT_MENU);
 #ifndef STRING_SPLASH_LINE2
-      u8g.drawStr(txt1X, u8g.getHeight() - DOG_CHAR_HEIGHT, STRING_SPLASH_LINE1);
+      u8g.drawStr(txtLine1PositionX, u8g.getHeight() - DOG_CHAR_HEIGHT + txtOffsetY, STRING_SPLASH_LINE1);
 #else
-      int txt2X = (u8g.getWidth() - (sizeof(STRING_SPLASH_LINE2) - 1) * DOG_CHAR_WIDTH) / 2;
-      u8g.drawStr(txt1X, u8g.getHeight() - DOG_CHAR_HEIGHT * 3 / 2, STRING_SPLASH_LINE1);
-      u8g.drawStr(txt2X, u8g.getHeight() - DOG_CHAR_HEIGHT * 1 / 2, STRING_SPLASH_LINE2);
+      int txtLine2PositionX = (u8g.getWidth() - (sizeof(STRING_SPLASH_LINE2) - 1) * DOG_CHAR_WIDTH) / 2 + txtOffsetX;
+      u8g.drawStr(txtLine1PositionX, u8g.getHeight() - DOG_CHAR_HEIGHT * 4 / 3 + txtOffsetY, STRING_SPLASH_LINE1);
+      u8g.drawStr(txtLine2PositionX, u8g.getHeight() - DOG_CHAR_HEIGHT / 2  + txtOffsetY, STRING_SPLASH_LINE2);
 #endif
     }
   } while (u8g.nextPage());
