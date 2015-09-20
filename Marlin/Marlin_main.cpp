@@ -2911,6 +2911,7 @@ inline void gcode_G132() {
   st_synchronize();
   // Reset the new position of the carriages.
   plan_set_position(0, 0, 0, current_position[E_AXIS]);
+  for (int i = X_AXIS; i <= Z_AXIS; i++) delta[i] = 0;
   bool skip_tower_check;
   // Move each carriage towards its endstop and measure offset.
   for (int i = X_AXIS; i <= Z_AXIS; i++) {
@@ -2929,7 +2930,7 @@ inline void gcode_G132() {
     }
     if (!skip_tower_check) {
       // Move carriage upwards until its endstop is triggered.
-      delta[i] = Z_MAX_LENGTH;
+      delta[i] = 3 * Z_MAX_LENGTH;
       plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], current_position[E_AXIS], feedrate * 0.01, active_extruder);
       st_synchronize();
       // Save the new endstop offset.
