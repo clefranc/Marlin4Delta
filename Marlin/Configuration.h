@@ -389,7 +389,7 @@ Here are some standard links for getting your machine calibrated:
   //#define DELTA_ENDSTOP_OFFSET_X -0.0 // mm (always negative)
   //#define DELTA_ENDSTOP_OFFSET_Y -0.0 // mm (always negative)
   //#define DELTA_ENDSTOP_OFFSET_Z -0.0 // mm (always negative)
-  
+
   // Then proceed with delta radius calibration. Nozzle MUST travel horizontally over the bed,
   // so you have to manually level the bed, presuming optimal flatness.
   //
