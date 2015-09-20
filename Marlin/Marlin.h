@@ -264,6 +264,15 @@ extern bool axis_known_position[3]; // axis[n].is_known
 #if ENABLED(DELTA)
   extern float delta[3];
   extern float endstop_adj[3]; // axis[n].endstop_adj
+  #ifndef DELTA_ENDSTOP_OFFSET_X
+    #define DELTA_ENDSTOP_OFFSET_X 0
+  #endif
+  #ifndef DELTA_ENDSTOP_OFFSET_Y
+    #define DELTA_ENDSTOP_OFFSET_Y 0
+  #endif
+  #ifndef DELTA_ENDSTOP_OFFSET_Z
+    #define DELTA_ENDSTOP_OFFSET_Z 0
+  #endif
   extern float delta_diagonal_rod_a;
   extern float delta_diagonal_rod_b;
   extern float delta_diagonal_rod_c;

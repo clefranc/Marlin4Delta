@@ -482,7 +482,9 @@ void Config_ResetDefault() {
   zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
 #endif
 #if ENABLED(DELTA)
-  endstop_adj[X_AXIS] = endstop_adj[Y_AXIS] = endstop_adj[Z_AXIS] = 0;
+  endstop_adj[X_AXIS] = DELTA_ENDSTOP_OFFSET_X;
+  endstop_adj[Y_AXIS] = DELTA_ENDSTOP_OFFSET_Y;
+  endstop_adj[Z_AXIS] = DELTA_ENDSTOP_OFFSET_Z;
   delta_diagonal_rod_a = DELTA_DIAGONAL_ROD_A;
   delta_diagonal_rod_b = DELTA_DIAGONAL_ROD_B;
   delta_diagonal_rod_c = DELTA_DIAGONAL_ROD_C;

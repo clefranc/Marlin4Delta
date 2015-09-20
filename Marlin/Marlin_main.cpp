@@ -355,7 +355,7 @@ float retract_recover_feedrate = RETRACT_RECOVER_FEEDRATE;
 
 float delta[3] = { 0 };
 float delta_z_offset = 0;
-float endstop_adj[3] = { 0 };
+float endstop_adj[3] = { DELTA_ENDSTOP_OFFSET_X, DELTA_ENDSTOP_OFFSET_Y, DELTA_ENDSTOP_OFFSET_Z };
 float delta_carriage_max_height[3] = { 0 };
 // These are the default values, can be overriden with M665.
 float delta_alpha_ca = DELTA_ALPHA_CA;

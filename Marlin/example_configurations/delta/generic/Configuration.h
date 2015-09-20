@@ -378,7 +378,18 @@ Here are some standard links for getting your machine calibrated:
   // Initial delta parameters are now complete, you can now proceed with other sections and upload,
   // then continue with the following procedures to fine tune your delta.
   //
-  // After the first upload, you MUST calibrate the endstops, this is imperative.
+  // After the first upload, you MUST calibrate the endstops offset, this is imperative.
+  // The procedure is simple: home the carriages with G28, use command M99 one tower at a time
+  // to lower the carriage at a known height from the base of the delta (not the bed).
+  // Use a ruler or a sturdy rod with M99 to make sure ALL carriages are at the same height.
+  // Then proceed with the G132 command. To show off the offset found, use M503 and look
+  // at the M666 result. Offsets are always negative. Use M500 to store the result.
+  // If you can't manually adjust the endstops height (or the carriages flag) to get all
+  // offset to or near 0, uncomment and enter them in the defines below.
+  //#define DELTA_ENDSTOP_OFFSET_X -0.0 // mm (always negative)
+  //#define DELTA_ENDSTOP_OFFSET_Y -0.0 // mm (always negative)
+  //#define DELTA_ENDSTOP_OFFSET_Z -0.0 // mm (always negative)
+
   // Then proceed with delta radius calibration. Nozzle MUST travel horizontally over the bed,
   // so you have to manually level the bed, presuming optimal flatness.
   //
