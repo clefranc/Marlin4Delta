@@ -43,8 +43,14 @@
  *
  * DELTA:
  *  M666 XYZ  endstop_adj (x3)
- *  M665 R    delta_radius
- *  M665 L    delta_diagonal_rod
+ *  M665 A    delta_diagonal_rod_a
+ *  M665 B    delta_diagonal_rod_b
+ *  M665 C    delta_diagonal_rod_c
+ *  M665 D    delta_radius_a
+ *  M665 E    delta_radius_b
+ *  M665 F    delta_radius_c
+ *  M665 G    delta_alpha_ca
+ *  M665 H    delta_alpha_cb
  *  M665 S    delta_segments_per_second
  *
  * ULTIPANEL:
@@ -176,16 +182,22 @@ void Config_StoreSettings()  {
   EEPROM_WRITE_VAR(i, zprobe_zoffset);
 #if ENABLED(DELTA)
   EEPROM_WRITE_VAR(i, endstop_adj);               // 3 floats
-  EEPROM_WRITE_VAR(i, delta_radius);              // 1 float
-  EEPROM_WRITE_VAR(i, delta_diagonal_rod);        // 1 float
+  EEPROM_WRITE_VAR(i, delta_diagonal_rod_a);      // 1 float
+  EEPROM_WRITE_VAR(i, delta_diagonal_rod_b);      // 1 float
+  EEPROM_WRITE_VAR(i, delta_diagonal_rod_c);      // 1 float
+  EEPROM_WRITE_VAR(i, delta_radius_a);            // 1 float
+  EEPROM_WRITE_VAR(i, delta_radius_b);            // 1 float
+  EEPROM_WRITE_VAR(i, delta_radius_c);            // 1 float
+  EEPROM_WRITE_VAR(i, delta_alpha_ca);            // 1 float
+  EEPROM_WRITE_VAR(i, delta_alpha_cb);            // 1 float
   EEPROM_WRITE_VAR(i, delta_segments_per_second); // 1 float
 #elif ENABLED(Z_DUAL_ENDSTOPS)
-  EEPROM_WRITE_VAR(i, z_endstop_adj);            // 1 floats
+  EEPROM_WRITE_VAR(i, z_endstop_adj);             // 1 float
   dummy = 0.0f;
-  for (int q = 5; q--;) EEPROM_WRITE_VAR(i, dummy);
+  for (int q = 11; q--;) EEPROM_WRITE_VAR(i, dummy);
 #else
   dummy = 0.0f;
-  for (int q = 6; q--;) EEPROM_WRITE_VAR(i, dummy);
+  for (int q = 12; q--;) EEPROM_WRITE_VAR(i, dummy);
 #endif
 #if DISABLED(ULTIPANEL)
   int plaPreheatHotendTemp = PLA_PREHEAT_HOTEND_TEMP, plaPreheatHPBTemp = PLA_PREHEAT_HPB_TEMP, plaPreheatFanSpeed = PLA_PREHEAT_FAN_SPEED,
@@ -322,17 +334,23 @@ void Config_RetrieveSettings() {
 #endif
     EEPROM_READ_VAR(i, zprobe_zoffset);
 #if ENABLED(DELTA)
-    EEPROM_READ_VAR(i, endstop_adj);                // 3 floats
-    EEPROM_READ_VAR(i, delta_radius);               // 1 float
-    EEPROM_READ_VAR(i, delta_diagonal_rod);         // 1 float
-    EEPROM_READ_VAR(i, delta_segments_per_second);  // 1 float
+    EEPROM_READ_VAR(i, endstop_adj);               // 3 floats
+    EEPROM_READ_VAR(i, delta_diagonal_rod_a);      // 1 float
+    EEPROM_READ_VAR(i, delta_diagonal_rod_b);      // 1 float
+    EEPROM_READ_VAR(i, delta_diagonal_rod_c);      // 1 float
+    EEPROM_READ_VAR(i, delta_radius_a);            // 1 float
+    EEPROM_READ_VAR(i, delta_radius_b);            // 1 float
+    EEPROM_READ_VAR(i, delta_radius_c);            // 1 float
+    EEPROM_READ_VAR(i, delta_alpha_ca);            // 1 float
+    EEPROM_READ_VAR(i, delta_alpha_cb);            // 1 float
+    EEPROM_READ_VAR(i, delta_segments_per_second); // 1 float
 #elif ENABLED(Z_DUAL_ENDSTOPS)
     EEPROM_READ_VAR(i, z_endstop_adj);
     dummy = 0.0f;
-    for (int q = 5; q--;) EEPROM_READ_VAR(i, dummy);
+    for (int q = 11; q--;) EEPROM_READ_VAR(i, dummy);
 #else
     dummy = 0.0f;
-    for (int q = 6; q--;) EEPROM_READ_VAR(i, dummy);
+    for (int q = 12; q--;) EEPROM_READ_VAR(i, dummy);
 #endif
 #if DISABLED(ULTIPANEL)
     int plaPreheatHotendTemp, plaPreheatHPBTemp, plaPreheatFanSpeed,
@@ -465,10 +483,16 @@ void Config_ResetDefault() {
 #endif
 #if ENABLED(DELTA)
   endstop_adj[X_AXIS] = endstop_adj[Y_AXIS] = endstop_adj[Z_AXIS] = 0;
-  delta_radius =  DELTA_RADIUS;
-  delta_diagonal_rod =  DELTA_DIAGONAL_ROD;
-  delta_segments_per_second =  DELTA_SEGMENTS_PER_SECOND;
-  recalc_delta_settings(delta_radius, delta_diagonal_rod);
+  delta_diagonal_rod_a = DELTA_DIAGONAL_ROD_A;
+  delta_diagonal_rod_b = DELTA_DIAGONAL_ROD_B;
+  delta_diagonal_rod_c = DELTA_DIAGONAL_ROD_C;
+  delta_radius_a = DELTA_RADIUS_A;
+  delta_radius_b = DELTA_RADIUS_B;
+  delta_radius_c = DELTA_RADIUS_C;
+  delta_alpha_ca = DELTA_ALPHA_CA;
+  delta_alpha_cb = DELTA_ALPHA_CB;
+  delta_segments_per_second = DELTA_SEGMENTS_PER_SECOND;
+  recalc_delta_settings(delta_diagonal_rod_a, delta_diagonal_rod_b, delta_diagonal_rod_c, delta_radius_a, delta_radius_b, delta_radius_c, delta_alpha_ca, delta_alpha_cb);
 #elif ENABLED(Z_DUAL_ENDSTOPS)
   z_endstop_adj = 0;
 #endif
@@ -641,10 +665,16 @@ void Config_PrintSettings(bool forReplay) {
   SERIAL_ECHOPAIR(" Z", endstop_adj[Z_AXIS]);
   SERIAL_EOL;
   CONFIG_ECHO_START;
-  SERIAL_ECHOLNPGM("Delta settings: L=delta_diagonal_rod, R=delta_radius, S=delta_segments_per_second");
+  SERIAL_ECHOLNPGM("Delta settings: A|B|C=diagonal rod a|b|c, D|E|F=radius a|b|c, G=tower a angle, H=tower b angle, S=segments per second");
   CONFIG_ECHO_START;
-  SERIAL_ECHOPAIR("  M665 L", delta_diagonal_rod);
-  SERIAL_ECHOPAIR(" R", delta_radius);
+  SERIAL_ECHOPAIR("  M665 A", delta_diagonal_rod_a);
+  SERIAL_ECHOPAIR(" B", delta_diagonal_rod_b);
+  SERIAL_ECHOPAIR(" C", delta_diagonal_rod_c);
+  SERIAL_ECHOPAIR(" D", delta_radius_a);
+  SERIAL_ECHOPAIR(" E", delta_radius_b);
+  SERIAL_ECHOPAIR(" F", delta_radius_c);
+  SERIAL_ECHOPAIR(" G", delta_alpha_ca);
+  SERIAL_ECHOPAIR(" H", delta_alpha_cb);
   SERIAL_ECHOPAIR(" S", delta_segments_per_second);
   SERIAL_EOL;
 #elif ENABLED(Z_DUAL_ENDSTOPS)

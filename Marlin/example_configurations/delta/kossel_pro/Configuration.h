@@ -89,9 +89,9 @@ Here are some standard links for getting your machine calibrated:
 // :[1,2,3,4]
 #define EXTRUDERS 1
 
-// Offset of the extruders (uncomment if using more than one and relying on firmware to position when changing).
-// The offset has to be X=0, Y=0 for the extruder 0 hotend (default extruder).
-// For the other hotends it is their distance from the extruder 0 hotend.
+// Offset of the extruders (comment if none of your extruders need it).
+// The offset of each nozzle is relative to center of the effector.
+// The number of set coordinates MUST be the same as EXTRUDERS, seperated by a comma.
 //#define EXTRUDER_OFFSET_X {0.0, 20.00} // (in mm) for each extruder, offset of the hotend on the X axis
 //#define EXTRUDER_OFFSET_Y {0.0, 5.00}  // (in mm) for each extruder, offset of the hotend on the Y axis
 
@@ -301,7 +301,7 @@ Here are some standard links for getting your machine calibrated:
 //===========================================================================
 //============================== Delta Settings =============================
 //===========================================================================
-// Enable DELTA kinematics and most of the default configuration for Deltas
+// Enable delta kinematics and most of the default configuration for deltas.
 #define DELTA
 
 #if ENABLED(DELTA)
@@ -311,25 +311,123 @@ Here are some standard links for getting your machine calibrated:
   // and processor overload (too many expensive sqrt calls).
   #define DELTA_SEGMENTS_PER_SECOND 160
 
-  // NOTE NB all values for DELTA_* values MUST be floating point, so always have a decimal point in them
+  // NOTE: All following values for DELTA_* MUST be floating point,
+  // so always have a decimal point in them.
+  //
+  // Towers and rod nomenclature for the following defines:
+  //
+  //                     C, Y-axis
+  //                     |
+  // DELTA_ALPHA_CA=120° |  DELTA_ALPHA_CB=120°
+  //                     |
+  //                     |______ X-axis
+  //                    / \
+  //                   /   \
+  //                  /     \
+  //                 /       \
+  //                A         B
+  //
+  //    |___| DELTA_CARRIAGE_OFFSET
+  //    |   \
+  //    |    \
+  //    |     \  DELTA_DIAGONAL_ROD
+  //    |      \
+  //    |       \   | Effector is at printer center!
+  //    |        \__|__/
+  //    |        |--| DELTA_EFFECTOR_OFFSET
+  //        |----|    DELTA_RADIUS
+  //      |---------| DELTA_PRINTABLE_RADIUS
+  //    |-----------| DELTA_SMOOTH_ROD_OFFSET
 
-  // Center-to-center distance of the holes in the diagonal push rods.
+  // Print surface diameter/2 minus unreachable space (avoid collisions with vertical towers).
+  #define DELTA_PRINTABLE_RADIUS 160.0 // mm
+
+  // Center-to-center distance of the holes in the diagonal rods (in millimeters).
+  // Initial value should be physically measured as accurately as possible.
+  // Delta diagonal rods lenght assumed to be the same for all towers using following define.
   #define DELTA_DIAGONAL_ROD 301.0 // mm
 
   // Horizontal offset from middle of printer to smooth rod center.
-  #define DELTA_SMOOTH_ROD_OFFSET 212.357 // mm
-
-  // Horizontal offset of the universal joints on the end effector.
-  #define DELTA_EFFECTOR_OFFSET 30.0 // mm
+  #define DELTA_SMOOTH_ROD_OFFSET 212.357 // mm *JUST FOR REFERENCE/NOT USED IN CODE*
 
   // Horizontal offset of the universal joints on the carriages.
-  #define DELTA_CARRIAGE_OFFSET 30.0 // mm
+  #define DELTA_CARRIAGE_OFFSET 30.0 // mm *JUST FOR REFERENCE/NOT USED IN CODE*
 
-  // Horizontal distance bridged by diagonal push rods when effector is centered.
-  #define DELTA_RADIUS (DELTA_SMOOTH_ROD_OFFSET-DELTA_EFFECTOR_OFFSET-DELTA_CARRIAGE_OFFSET)
+  // Horizontal offset of the universal joints on the end effector.
+  #define DELTA_EFFECTOR_OFFSET 30.0 // mm *JUST FOR REFERENCE/NOT USED IN CODE*
 
-  // Print surface diameter/2 minus unreachable space (avoid collisions with vertical towers).
-  #define DELTA_PRINTABLE_RADIUS 127
+  // Horizontal distance bridged by diagonal rod when effector is centered (in millimeters).
+  // Initial value should be physically measured as accurately as possible,
+  // or replace value with: (DELTA_SMOOTH_ROD_OFFSET-DELTA_EFFECTOR_OFFSET-DELTA_CARRIAGE_OFFSET)
+  // Delta radius assumed to be the same for all towers using following define.
+  #define DELTA_RADIUS 152.357 // mm
+
+  // Initial delta parameters are now complete, you can now proceed with other sections and upload,
+  // then continue with the following procedures to fine tune your delta.
+  //
+  // After the first upload, you MUST calibrate the endstops, this is imperative.
+  // Then proceed with delta radius calibration. Nozzle MUST travel horizontally over the bed,
+  // so you have to manually level the bed, presuming optimal flatness.
+  //
+  // You can then use the M665 command to set the new parameters of your delta.
+  // M665 parameters can be set individually or all at once, in any order.
+  //
+  // WARNING: If your EEPROM is not activated you'll loose the parameters after reset.
+  //
+  // If EEPROM is enabled, don't forget to do a M500 after using the M665 command.
+  // You can also set the defines below and upload the firmware for permanent use.
+  //
+  // M665 A|B|C<diagonal rod tower a|b|c> D|E|F<radius tower a|b|c> G<tower a angle> H<tower b angle> S<segments per second>
+  //      A = DELTA_DIAGONAL_ROD_A
+  //      B = DELTA_DIAGONAL_ROD_B
+  //      C = DELTA_DIAGONAL_ROD_C
+  //      D = DELTA_RADIUS_A
+  //      E = DELTA_RADIUS_B
+  //      F = DELTA_RADIUS_C
+  //      G = DELTA_ALPHA_CA
+  //      H = DELTA_ALPHA_CB
+  //      S = DELTA_SEGMENTS_PER_SECOND
+  //
+  // Example: M665 B441.3564 E259.5 G120.5
+  //
+  // WARINIG: Don't forget to home after using M665.
+
+  // You can adjust the horizontal radius individually,
+  // by uncommenting and setting one or more of the following defines.
+  // These must be measured manually (or using a Z probe and G30 command).
+  // The horizontal radius ensures that the nozzle travel over the bed at the same height, for all axes.
+  // Increase value for dome shape and decrease for bowl shape nozzle travel.
+  // Use DELTA_RADIUS as a starting value and add/substract 0.5mm to get a straight line.
+  //#define DELTA_RADIUS_A 152.357 // mm
+  //#define DELTA_RADIUS_B 152.357 // mm
+  //#define DELTA_RADIUS_C 152.357 // mm
+  // You can comment DELTA_RADIUS only if all 3 defines above are uncommented.
+
+  // To calibrate your printer further, ie print objects with dimension accuracy,
+  // you first have to print a calibration object like these one:
+  // http://www.thingiverse.com/thing:745523
+  // http://www.thingiverse.com/thing:776346
+  // These objects will give you references for the error on all three axes.
+  //
+  // Use the formula below to set the new DELTA_DIAGONAL_ROD:
+  // √((measured value / true value) * DELTA_DIAGONAL_ROD²)
+  //
+  // Note: DELTA_DIAGONAL_ROD above is squared or ^2.
+  //
+  // If your printed object needs different diagonal rod values,
+  // or if you're already using the defines below, replace the DELTA_DIAGONAL_ROD
+  // in the formula above with the proper ones A, B or C.
+  //#define DELTA_DIAGONAL_ROD_A 301.0 // mm
+  //#define DELTA_DIAGONAL_ROD_B 301.0 // mm
+  //#define DELTA_DIAGONAL_ROD_C 301.0 // mm
+  // You can comment DELTA_DIAGONAL_ROD only if all 3 defines above are uncommented.
+  //
+  // Recheck horizontal radius after diagonal rod modifications.
+
+  // Angle for tower A anb B relative to C (0°). See diagram above.
+  // Uncomment to set value other than default 120°.
+  //#define DELTA_ALPHA_CA 120.0
+  //#define DELTA_ALPHA_CB 120.0
 
 #endif
 

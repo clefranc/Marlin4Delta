@@ -264,29 +264,41 @@ extern bool axis_known_position[3]; // axis[n].is_known
 #if ENABLED(DELTA)
   extern float delta[3];
   extern float endstop_adj[3]; // axis[n].endstop_adj
-  extern float delta_radius;
-  #ifndef DELTA_RADIUS_TRIM_TOWER_1
-    #define DELTA_RADIUS_TRIM_TOWER_1 0.0
-  #endif
-  #ifndef DELTA_RADIUS_TRIM_TOWER_2
-    #define DELTA_RADIUS_TRIM_TOWER_2 0.0
-  #endif
-  #ifndef DELTA_RADIUS_TRIM_TOWER_3
-    #define DELTA_RADIUS_TRIM_TOWER_3 0.0
-  #endif
-  extern float delta_diagonal_rod;
-  #ifndef DELTA_DIAGONAL_ROD_TRIM_TOWER_1
-    #define DELTA_DIAGONAL_ROD_TRIM_TOWER_1 0.0
-  #endif
-  #ifndef DELTA_DIAGONAL_ROD_TRIM_TOWER_2
-    #define DELTA_DIAGONAL_ROD_TRIM_TOWER_2 0.0
-  #endif
-  #ifndef DELTA_DIAGONAL_ROD_TRIM_TOWER_3
-    #define DELTA_DIAGONAL_ROD_TRIM_TOWER_3 0.0
-  #endif
+  extern float delta_diagonal_rod_a;
+  extern float delta_diagonal_rod_b;
+  extern float delta_diagonal_rod_c;
+  extern float delta_radius_a;
+  extern float delta_radius_b;
+  extern float delta_radius_c;
+  extern float delta_alpha_ca;
+  extern float delta_alpha_cb;
   extern float delta_segments_per_second;
+  #ifndef DELTA_DIAGONAL_ROD_A
+    #define DELTA_DIAGONAL_ROD_A DELTA_DIAGONAL_ROD
+  #endif
+  #ifndef DELTA_DIAGONAL_ROD_B
+    #define DELTA_DIAGONAL_ROD_B DELTA_DIAGONAL_ROD
+  #endif
+  #ifndef DELTA_DIAGONAL_ROD_C
+    #define DELTA_DIAGONAL_ROD_C DELTA_DIAGONAL_ROD
+  #endif
+  #ifndef DELTA_RADIUS_A
+    #define DELTA_RADIUS_A DELTA_RADIUS
+  #endif
+  #ifndef DELTA_RADIUS_B
+    #define DELTA_RADIUS_B DELTA_RADIUS
+  #endif
+  #ifndef DELTA_RADIUS_C
+    #define DELTA_RADIUS_C DELTA_RADIUS
+  #endif
+  #ifndef DELTA_ALPHA_CA
+    #define DELTA_ALPHA_CA 120.0
+  #endif
+  #ifndef DELTA_ALPHA_CB
+    #define DELTA_ALPHA_CB 120.0
+  #endif
   void calculate_delta(float cartesian[3]);
-  void recalc_delta_settings(float radius, float diagonal_rod);
+  void recalc_delta_settings(float diagonal_rod_a, float diagonal_rod_b, float diagonal_rod_c, float radius_a, float radius_b, float radius_c, float tower_a_alpha, float tower_b_beta);
   #if ENABLED(AUTO_BED_LEVELING_FEATURE)
     extern int delta_grid_spacing[2];
     void adjust_delta(float cartesian[3]);
