@@ -138,15 +138,15 @@ script:
   #- rm -rf .build/
   #- DISPLAY=:1.0 ~/bin/arduino --verify --board marlin:avr:mega  Marlin/Marlin.ino
   # LCD_I2C_PANELOLU2
-  - cp Marlin/Configuration.h.backup Marlin/Configuration.h
-  - sed -i 's/\/\/#define LCD_I2C_PANELOLU2/#define LCD_I2C_PANELOLU2/g' Marlin/Configuration.h
-  - rm -rf .build/
-  - DISPLAY=:1.0 ~/bin/arduino --verify --board marlin:avr:mega  Marlin/Marlin.ino
+  #- cp Marlin/Configuration.h.backup Marlin/Configuration.h
+  #- sed -i 's/\/\/#define LCD_I2C_PANELOLU2/#define LCD_I2C_PANELOLU2/g' Marlin/Configuration.h
+  #- rm -rf .build/
+  #- DISPLAY=:1.0 ~/bin/arduino --verify --board marlin:avr:mega  Marlin/Marlin.ino
   # LCD_I2C_VIKI
-  - cp Marlin/Configuration.h.backup Marlin/Configuration.h
-  - sed -i 's/\/\/#define LCD_I2C_VIKI/#define LCD_I2C_VIKI/g' Marlin/Configuration.h
-  - rm -rf .build/
-  - DISPLAY=:1.0 ~/bin/arduino --verify --board marlin:avr:mega  Marlin/Marlin.ino
+  #- cp Marlin/Configuration.h.backup Marlin/Configuration.h
+  #- sed -i 's/\/\/#define LCD_I2C_VIKI/#define LCD_I2C_VIKI/g' Marlin/Configuration.h
+  #- rm -rf .build/
+  #- DISPLAY=:1.0 ~/bin/arduino --verify --board marlin:avr:mega  Marlin/Marlin.ino
   # Enable filament sensor
   - cp Marlin/Configuration.h.backup Marlin/Configuration.h
   - sed -i 's/\/\/#define FILAMENT_SENSOR/#define FILAMENT_SENSOR/g' Marlin/Configuration.h
@@ -171,6 +171,7 @@ script:
   - DISPLAY=:1.0 ~/bin/arduino --verify --board marlin:avr:mega  Marlin/Marlin.ino
   # Enable Z_DUAL_STEPPER_DRIVERS, Z_DUAL_ENDSTOPS
   - cp Marlin/Configuration.h.backup Marlin/Configuration.h
+  - sed -i 's/#define EXTRUDERS 2/#define EXTRUDERS 1/g' Marlin/Configuration.h
   - sed -i 's/\/\/#define Z_DUAL_STEPPER_DRIVERS/#define Z_DUAL_STEPPER_DRIVERS/g' Marlin/Configuration_adv.h
   - sed -i 's/\ \ \/\/\ \#define Z_DUAL_ENDSTOPS/#define Z_DUAL_ENDSTOPS/g' Marlin/Configuration_adv.h
   - sed -i 's/#define X_MAX_PIN           2/#define X_MAX_PIN          -1/g' Marlin/pins_RAMPS_13.h
