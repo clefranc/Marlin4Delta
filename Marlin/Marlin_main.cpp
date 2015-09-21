@@ -1098,6 +1098,19 @@ static void setup_for_endstop_move() {
   enable_endstops(true);
 }
 
+static void clean_up_after_endstop_move() {
+#if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
+#if ENABLED(DEBUG_LEVELING_FEATURE)
+  if (marlin_debug_flags & DEBUG_LEVELING)
+    SERIAL_ECHOLNPGM("clean_up_after_endstop_move > ENDSTOPS_ONLY_FOR_HOMING > enable_endstops(false)");
+#endif
+  enable_endstops(false);
+#endif
+  feedrate = saved_feedrate;
+  feedrate_multiplier = saved_feedrate_multiplier;
+  refresh_cmd_timeout();
+}
+
 #if ENABLED(AUTO_BED_LEVELING_FEATURE)
 
 #if ENABLED(DELTA)
@@ -1258,19 +1271,6 @@ inline void do_blocking_move_to_xy(float x, float y) { do_blocking_move_to(x, y,
 inline void do_blocking_move_to_x(float x) { do_blocking_move_to(x, current_position[Y_AXIS], current_position[Z_AXIS]); }
 inline void do_blocking_move_to_z(float z) { do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], z); }
 inline void raise_z_after_probing() { do_blocking_move_to_z(current_position[Z_AXIS] + Z_RAISE_AFTER_PROBING); }
-
-static void clean_up_after_endstop_move() {
-#if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
-#if ENABLED(DEBUG_LEVELING_FEATURE)
-  if (marlin_debug_flags & DEBUG_LEVELING)
-    SERIAL_ECHOLNPGM("clean_up_after_endstop_move > ENDSTOPS_ONLY_FOR_HOMING > enable_endstops(false)");
-#endif
-  enable_endstops(false);
-#endif
-  feedrate = saved_feedrate;
-  feedrate_multiplier = saved_feedrate_multiplier;
-  refresh_cmd_timeout();
-}
 
 static void deploy_z_probe() {
 #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -2859,8 +2859,6 @@ inline void gcode_G92() {
   }
 }
 
-#if ENABLED(ULTIPANEL)
-
 #if ENABLED(DELTA)
 /**
  * G131: Remove active extruder offset (center effector)
@@ -2941,6 +2939,8 @@ inline void gcode_G132() {
   gcode_G28();
 }
 #endif // DELTA
+
+#if ENABLED(ULTIPANEL)
 
 /**
  * M0: // M0 - Unconditional stop - Wait for user button press on LCD
