@@ -13,8 +13,8 @@ addons:
       name: "clefranc/Marlin4Delta"
       description: "Build submitted via Travis CI"
     notification_email: clefranc@diffusionfermont.ca
-    build_command_prepend: rm -rf .build/
-    build_command: ~/bin/arduino --preserve-temp-files --pref build.path=/build --verify --board marlin:avr:mega  Marlin/Marlin.ino
+    build_command_prepend:
+    build_command: ~/bin/arduino --preserve-temp-files --pref build.path=/build --verify --verbose-build --board marlin:avr:mega  Marlin/Marlin.ino
     branch_pattern: master
 
 before_install:
