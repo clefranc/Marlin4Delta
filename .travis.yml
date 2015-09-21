@@ -1,6 +1,22 @@
 ---
 language: c
 
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "Xe0jbBoYtSdgaRZsfatbocBk585ZpBKoNB283CBPu3Mwyd6m43NjIgw9fS3UyOp3zknmIrlFl0AhibRJaQjKm+P1EwtTNtLhvIed91BWJBdkA9UBlr3rBM8t3WrNtfRFPbzfrt/skzy09vaACkUzoEQJW113yyvmJto0A+pEVYcx3g50qfZbkC+8uIBha6AQwfFKm0720gf1myto43CWX+K9u0yMWDlVUH1AZSfdAuKQrfDPg+nVv4UNWF158aKOsffeUl+81INjl0hlvzuB9tYV+P0ICpJTG+pRMZn6Us7h4zGtxGbsu7e3/gilpahrHFzA+jia5kAb02HVkLL6JeLsfAvzYIkSBqHJVkcnjBuurPSKlES/UuJjHVtD/ZCOyecxw1RyQ/ba/mOvZGrQApNHFEFeCjYtY0DHfFKKT/PbHYYPmoyNOW52ALKUR0qOGVT+x0/xy1UWuFqGHe4Yw7gqaA61bkBFpaF7JPGoLJMxIgnh8pPzvXl+9AnTPpAOt6axn7j8/hYsxmfYaNRxIWqYqeJgDCXBb2l+jyqgHkitKKYtxzYFDOZ39FazSoug5KxO8hXkIcZRjovH4VkYyMCGvkyS9cP+cy35D3QXU10sz4pFlgXNgltYBitYicPXm2d01BrqAJxny50GGHAeOi8bfnuR9gSZrrLkbCVej4g="
+
+addons:
+  coverity_scan:
+    project:
+      name: "clefranc/Marlin4Delta"
+      description: "Build submitted via Travis CI"
+    notification_email: clefranc@diffusionfermont.ca
+    build_command_prepend: rm -rf .build/
+    build_command: DISPLAY=:1.0 ~/bin/arduino --verify --board marlin:avr:mega  Marlin/Marlin.ino
+    branch_pattern: master
+
 before_install:
   # Travis runs a detached head. We need to find the current branch
   - git checkout `git branch --contains HEAD | grep -v '*'`
