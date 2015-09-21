@@ -171,6 +171,8 @@ script:
   - DISPLAY=:1.0 ~/bin/arduino --verify --board marlin:avr:mega  Marlin/Marlin.ino
   # Enable Z_DUAL_STEPPER_DRIVERS, Z_DUAL_ENDSTOPS
   - cp Marlin/Configuration.h.backup Marlin/Configuration.h
+  - sed -i 's/{0.0, 9.0933}/{0.0}/g' Marlin/Configuration.h
+  - sed -i 's/{-10.5, 5.25}/{0.0}/g' Marlin/Configuration.h
   - sed -i 's/#define EXTRUDERS 2/#define EXTRUDERS 1/g' Marlin/Configuration.h
   - sed -i 's/\/\/#define Z_DUAL_STEPPER_DRIVERS/#define Z_DUAL_STEPPER_DRIVERS/g' Marlin/Configuration_adv.h
   - sed -i 's/\ \ \/\/\ \#define Z_DUAL_ENDSTOPS/#define Z_DUAL_ENDSTOPS/g' Marlin/Configuration_adv.h
