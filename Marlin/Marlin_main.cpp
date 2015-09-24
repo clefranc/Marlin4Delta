@@ -353,6 +353,7 @@ float retract_recover_feedrate = RETRACT_RECOVER_FEEDRATE;
 
 #if ENABLED(DELTA)
 
+const char delta_axis_codes[NUM_AXIS] = {'A', 'B', 'C', 'E'};
 float delta[3] = { 0 };
 float delta_z_offset = 0;
 float endstop_adj[3] = { DELTA_ENDSTOP_OFFSET_X, DELTA_ENDSTOP_OFFSET_Y, DELTA_ENDSTOP_OFFSET_Z };
@@ -2022,15 +2023,15 @@ inline void gcode_G28() {
   // Save the maximum carriages height from 0,0 cartesian positions, without any offset.
   // It'll be used to calculate the top carriages clearance needed after applying extruder offset.
   calculate_delta(current_position);
-  for (int i = X_AXIS; i <= Z_AXIS; i++) delta_carriage_max_height[i] = delta[i];
+  for (int i = A_AXIS; i <= C_AXIS; i++) delta_carriage_max_height[i] = delta[i];
   // Reapply extruder offset.
   extruder_offset[X_AXIS][active_extruder] = previous_extruder_x_offset;
   extruder_offset[Y_AXIS][active_extruder] = previous_extruder_y_offset;
   // Get the new carriages height after the offset and find maximum tower distance.
   calculate_delta(current_position);
-  delta_z_offset = max(delta[X_AXIS] - delta_carriage_max_height[X_AXIS], max(delta[Y_AXIS] - delta_carriage_max_height[Y_AXIS], delta[Z_AXIS] - delta_carriage_max_height[Z_AXIS]));
+  delta_z_offset = max(delta[A_AXIS] - delta_carriage_max_height[A_AXIS], max(delta[B_AXIS] - delta_carriage_max_height[B_AXIS], delta[C_AXIS] - delta_carriage_max_height[C_AXIS]));
   // Move to the new position with delta Z offset, the carriages WILL go down only.
-  plan_buffer_line(delta[X_AXIS] - delta_z_offset, delta[Y_AXIS] - delta_z_offset, delta[Z_AXIS] - delta_z_offset, current_position[E_AXIS], homing_feedrate[Z_AXIS], active_extruder);
+  plan_buffer_line(delta[A_AXIS] - delta_z_offset, delta[B_AXIS] - delta_z_offset, delta[C_AXIS] - delta_z_offset, current_position[E_AXIS], homing_feedrate[Z_AXIS], active_extruder);
   st_synchronize();
   // Reapply extruder delta Z offet to current position for centered printing.
   current_position[Z_AXIS] -= delta_z_offset;
@@ -2545,7 +2546,7 @@ inline void gcode_G29() {
   delta_grid_spacing[0] = xGridSpacing;
   delta_grid_spacing[1] = yGridSpacing;
   float z_offset = zprobe_zoffset;
-  if (code_seen(axis_codes[Z_AXIS])) z_offset += code_value();
+  if (code_seen(delta_axis_codes[C_AXIS])) z_offset += code_value();
 #else // !DELTA
   // solve the plane equation ax + by + d = z
   // A is the matrix with rows [x y 1] for all the probed points
@@ -3385,27 +3386,61 @@ inline void gcode_M48() {
 
 #endif // AUTO_BED_LEVELING_FEATURE && Z_MIN_PROBE_REPEATABILITY_TEST
 
-#if ENABLED(DELTA)
 /**
  * M99: Disable stepper motor(s) for X seconds (default 10s).
+ * 
+ * Usage: M99 X Y Z S#
+ *        X = Disable X motor (alias A).
+ *        Y = Disable X motor (alias B).
+ *        Z = Disable X motor (alias C).
+ *        A = Amount of seconds to deactivate motor(s).
+ *        
  */
 inline void gcode_M99() {
   millis_t codenum = 10 * 1000;
   if (code_seen('S')) codenum = code_value() * 1000; // Seconds to wait.
   st_synchronize();
-  if (code_seen('X')) disable_x();
-  if (code_seen('Y')) disable_y();
-  if (code_seen('Z')) disable_z();
+  if (code_seen(axis_codes[X_AXIS])
+#if ENABLED(DELTA)
+    || code_seen(delta_axis_codes[A_AXIS]))
+#endif
+    ) disable_x();
+  if (code_seen(axis_codes[Y_AXIS])
+#if ENABLED(DELTA)
+    || code_seen(delta_axis_codes[B_AXIS]))
+#endif
+    ) disable_y();
+  if (code_seen(axis_codes[Z_AXIS])
+#if ENABLED(DELTA)
+    || code_seen(delta_axis_codes[C_AXIS]))
+#endif
+    ) disable_z();
   refresh_cmd_timeout();
   codenum += previous_cmd_ms;  // Keep track of when we started waiting.
-  if ((code_seen(axis_codes[X_AXIS])) || (code_seen(axis_codes[Y_AXIS])) || (code_seen(axis_codes[Z_AXIS]))) {
+  if ((code_seen(axis_codes[X_AXIS])) || (code_seen(axis_codes[Y_AXIS])) || (code_seen(axis_codes[Z_AXIS]))
+#if ENABLED(DELTA)
+    || (code_seen(delta_axis_codes[A_AXIS])) || (code_seen(delta_axis_codes[B_AXIS])) || (code_seen(delta_axis_codes[C_AXIS]))
+#endif
+    )
+  {
     while (millis() < codenum) idle(); // Wait before enabling stepper motor(s) back.
   }
-  if (code_seen('X')) enable_x();
-  if (code_seen('Y')) enable_y();
-  if (code_seen('Z')) enable_z();
+  if (code_seen(axis_codes[X_AXIS])
+#if ENABLED(DELTA)
+    || code_seen(delta_axis_codes[A_AXIS]))
+#endif
+    ) enable_x();
+  if (code_seen(axis_codes[Y_AXIS])
+#if ENABLED(DELTA)
+    || code_seen(delta_axis_codes[B_AXIS]))
+#endif
+    ) enable_y();
+  if (code_seen(axis_codes[Z_AXIS])
+#if ENABLED(DELTA)
+    || code_seen(delta_axis_codes[C_AXIS]))
+#endif
+    ) enable_z();
 }
-#endif // DELTA
 
 /**
  * M104: Set hot end temperature
