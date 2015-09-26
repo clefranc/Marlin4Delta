@@ -659,12 +659,12 @@ void Config_PrintSettings(bool forReplay) {
 #if ENABLED(DELTA)
   CONFIG_ECHO_START;
   if (!forReplay) {
-    SERIAL_ECHOLNPGM("Endstop adjustment (mm):");
+    SERIAL_ECHOLNPGM("Delta endstops adjustment (mm):");
     CONFIG_ECHO_START;
   }
-  SERIAL_ECHOPAIR("  M666 X", endstop_adj[X_AXIS]);
-  SERIAL_ECHOPAIR(" Y", endstop_adj[Y_AXIS]);
-  SERIAL_ECHOPAIR(" Z", endstop_adj[Z_AXIS]);
+  SERIAL_ECHOPAIR("  M666 A", endstop_adj[A_AXIS]);
+  SERIAL_ECHOPAIR(" B", endstop_adj[B_AXIS]);
+  SERIAL_ECHOPAIR(" C", endstop_adj[C_AXIS]);
   SERIAL_EOL;
   CONFIG_ECHO_START;
   SERIAL_ECHOLNPGM("Delta settings: A|B|C=diagonal rod a|b|c, D|E|F=radius a|b|c, G=tower a angle, H=tower b angle, S=segments per second");

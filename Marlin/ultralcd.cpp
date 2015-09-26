@@ -742,7 +742,7 @@ static void lcd_delta_calibrate_menu() {
 inline void line_to_current(AxisEnum axis) {
 #if ENABLED(DELTA)
   calculate_delta(current_position);
-  plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], current_position[E_AXIS], manual_feedrate[axis] / 60, active_extruder);
+  plan_buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], manual_feedrate[axis] / 60, active_extruder);
 #else
   plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], manual_feedrate[axis] / 60, active_extruder);
 #endif
