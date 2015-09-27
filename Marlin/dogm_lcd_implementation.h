@@ -260,13 +260,12 @@ static void _draw_heater_status(int x, int heater) {
   u8g.setPrintPos(x, 28);
   lcd_print(itostr3(int(heater >= 0 ? degHotend(heater) : degBed()) + 0.5));
   lcd_printPGM(PSTR(LCD_STR_DEGREE " "));
-  if (!isHeatingHotend(0))
-    u8g.drawBox(x + 7, y, 2, 2);
-  else {
+  if (heater >= 0 && active_extruder == heater) {
     u8g.setColorIndex(0); // white on black
     u8g.drawBox(x + 7, y, 2, 2);
     u8g.setColorIndex(1); // black on white
-  }
+  } else
+    u8g.drawBox(x + 7, y, 2, 2);
 }
 
 static void lcd_implementation_status_screen() {
