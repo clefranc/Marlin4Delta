@@ -102,6 +102,8 @@
  *
  * M0   - Unconditional stop - Wait for user to press a button on the LCD (Only if ULTRA_LCD is enabled)
  * M1   - Same as M0
+ * M2   - Host print started
+ * M4   - Host printing ended
  * M17  - Enable/Power all stepper motors
  * M18  - Disable all stepper motors; same as M84
  * M20  - List SD card
@@ -238,6 +240,7 @@
 #endif
 
 bool Running = true;
+bool HostPrinting = false;
 
 uint8_t marlin_debug_flags = DEBUG_INFO | DEBUG_ERRORS;
 
@@ -2984,6 +2987,22 @@ inline void gcode_M0_M1() {
 #endif // ULTIPANEL
 
 /**
+ * M2: Host print started
+ */
+inline void gcode_M2() {
+  HostPrinting = true;
+  LCD_MESSAGEPGM(MSG_HOST_PRINTING_STARTED);
+}
+
+/**
+ * M4: Host printing ended
+ */
+inline void gcode_M4() {
+  HostPrinting = false;
+  LCD_MESSAGEPGM(MSG_HOST_PRINTING_ENDED);
+}
+
+/**
  * M17: Enable power on all stepper motors
  */
 inline void gcode_M17() {
@@ -5091,6 +5110,7 @@ inline void gcode_M351() {
  */
 inline void gcode_M999() {
   Running = true;
+  HostPrinting = false;
   lcd_reset_alert_level();
   // gcode_LastN = Stopped_gcode_LastN;
   FlushSerialRequestResend();
@@ -5298,6 +5318,12 @@ void process_next_command() {
       gcode_M0_M1();
       break;
 #endif // ULTIPANEL
+    case 2: // M2 - Host print started
+      gcode_M2();
+      break;
+    case 4: // M4 - Host printing ended
+      gcode_M4();
+      break;
     case 17:
       gcode_M17();
       break;
@@ -6651,6 +6677,7 @@ void setPwmFrequency(uint8_t pin, int val) {
 
 void Stop() {
   disable_all_heaters();
+  HostPrinting = false; 
   if (IsRunning()) {
     Running = false;
     Stopped_gcode_LastN = gcode_LastN; // Save last g_code for restart

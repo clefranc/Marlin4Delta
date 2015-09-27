@@ -162,6 +162,9 @@
 #define MSG_SD_ERR_WRITE_TO_FILE            "error writing to file"
 #define MSG_SD_CANT_ENTER_SUBDIR            "Cannot enter subdir: "
 
+#define MSG_HOST_PRINTING_STARTED           "Host printing..."
+#define MSG_HOST_PRINTING_ENDED             "Host printing done!"
+
 #define MSG_STEPPER_TOO_HIGH                "Steprate too high: "
 #define MSG_ENDSTOPS_HIT                    "endstops hit: "
 #define MSG_ERR_COLD_EXTRUDE_STOP           " cold extrusion prevented"
