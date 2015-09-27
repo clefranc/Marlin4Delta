@@ -273,29 +273,40 @@ static void lcd_implementation_status_screen() {
   u8g.setColorIndex(1); // black on white
   // Symbols menu graphics, animated fan
   u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT, (blink % 2) && fanSpeed ? status_screen0_bmp : status_screen1_bmp);
+  // Print source symbol (idle, host or SD card).
+  if (IsHostPrinting())
+    u8g.drawBitmapP(40, 41 - TALL_FONT_CORRECTION, STATUS_USBBYTEWIDTH, STATUS_USBHEIGHT, status_usb_bmp);
 #if ENABLED(SDSUPPORT)
-  // SD Card Symbol
-  u8g.drawBox(42, 42 - TALL_FONT_CORRECTION, 8, 7);
-  u8g.drawBox(50, 44 - TALL_FONT_CORRECTION, 2, 5);
-  u8g.drawFrame(42, 49 - TALL_FONT_CORRECTION, 10, 4);
-  u8g.drawPixel(50, 43 - TALL_FONT_CORRECTION);
+  else if (IS_SD_PRINTING)
+    u8g.drawBitmapP(40, 41 - TALL_FONT_CORRECTION, STATUS_SDCARDBYTEWIDTH, STATUS_SDCARDHEIGHT, status_sdcard_bmp);
+#endif
+  else
+    u8g.drawBitmapP(40, 41 - TALL_FONT_CORRECTION, STATUS_IDLEBYTEWIDTH, STATUS_IDLEHEIGHT, status_idle_bmp);
   // Progress bar frame
   u8g.drawFrame(54, 49, 73, 4 - TALL_FONT_CORRECTION);
   // SD Card Progress bar and clock
   lcd_setFont(FONT_STATUSMENU);
-  if (IS_SD_PRINTING) {
-    // Progress bar solid part
-    u8g.drawBox(55, 50, (unsigned int)(71.f * card.percentDone() / 100.f), 2 - TALL_FONT_CORRECTION);
-  }
-  u8g.setPrintPos(80, 48);
+  uint8_t percent;
+  if (IsHostPrinting())
+    percent = HostPrintingPercent;
+#if ENABLED(SDSUPPORT)
+  else if (IS_SD_PRINTING)
+    percent = card.percentDone();
+#endif
+  // Progress bar solid part
+  u8g.drawBox(55, 50, (unsigned int)(71.f * percent / 100.f), 2 - TALL_FONT_CORRECTION);
+  u8g.setPrintPos(97, 48);
   if (print_job_start_ms != 0) {
-    uint16_t time = (millis() - print_job_start_ms) / 60000;
+    uint16_t time = 0;
+    if (print_job_stop_ms != 0)
+      time = (print_job_stop_ms - print_job_start_ms) / 60000;
+    else
+      time = (millis() - print_job_start_ms) / 60000;
     lcd_print(itostr2(time / 60));
     lcd_print(':');
     lcd_print(itostr2(time % 60));
   } else
     lcd_printPGM(PSTR("--:--"));
-#endif
   // Extruders
   for (int i = 0; i < EXTRUDERS; i++) _draw_heater_status(6 + i * 25, i);
   // Heatbed

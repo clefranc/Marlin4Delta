@@ -102,8 +102,9 @@
  *
  * M0   - Unconditional stop - Wait for user to press a button on the LCD (Only if ULTRA_LCD is enabled)
  * M1   - Same as M0
- * M2   - Host print started
- * M4   - Host printing ended
+ * M2   - Host printing started
+ * M3   - Host printing ended
+ * M4   - Object information and status: X<maximum> width in mm, Y<maximum> depth in mm, Z<maximum> height in mm, E<extrusion needed> in mm, M<material> 0=dryrun 1=ABS 2=PLA, C<material cost> per mm, P<percent completed>
  * M17  - Enable/Power all stepper motors
  * M18  - Disable all stepper motors; same as M84
  * M20  - List SD card
@@ -241,6 +242,10 @@
 
 bool Running = true;
 bool HostPrinting = false;
+float HostPrintingFilamentNeeded = 0;
+uint8_t HostPrintingPercent = 0;
+
+float filament_used = 0;
 
 uint8_t marlin_debug_flags = DEBUG_INFO | DEBUG_ERRORS;
 
@@ -1895,6 +1900,12 @@ inline void gcode_G0_G1() {
     }
 #endif //FWRETRACT
     prepare_move();
+    if (IsHostPrinting() && HostPrintingFilamentNeeded > 0) {
+      filament_used += (destination[E_AXIS] - current_position[E_AXIS]) / 100;
+      if (filament_used > HostPrintingFilamentNeeded)
+        filament_used = HostPrintingFilamentNeeded;
+      HostPrintingPercent = filament_used / HostPrintingFilamentNeeded * 100;
+    }
   }
 }
 
@@ -2987,19 +2998,33 @@ inline void gcode_M0_M1() {
 #endif // ULTIPANEL
 
 /**
- * M2: Host print started
+ * M2: Host printing started
  */
 inline void gcode_M2() {
   HostPrinting = true;
   LCD_MESSAGEPGM(MSG_HOST_PRINTING_STARTED);
+  filament_used = 0;
+  print_job_stop_ms = 0;
+  print_job_start_ms = millis();
 }
 
 /**
- * M4: Host printing ended
+ * M3: Host printing ended
+ */
+inline void gcode_M3() {
+  //HostPrinting = code_value_short(); // Commented to keep the logo, print time and progress bar after print completed.
+  LCD_MESSAGEPGM(MSG_HOST_PRINTING_ENDED);
+  print_job_stop_ms = millis();
+}
+
+/**
+ * M4: Object information and status
  */
 inline void gcode_M4() {
-  HostPrinting = false;
-  LCD_MESSAGEPGM(MSG_HOST_PRINTING_ENDED);
+  if (code_seen('E'))
+    HostPrintingFilamentNeeded = code_value();
+  if (code_seen('P'))
+    HostPrintingPercent = (uint8_t)code_value_short(); // percent completed
 }
 
 /**
@@ -5318,10 +5343,13 @@ void process_next_command() {
       gcode_M0_M1();
       break;
 #endif // ULTIPANEL
-    case 2: // M2 - Host print started
+    case 2: // M2 - Host printing started
       gcode_M2();
       break;
-    case 4: // M4 - Host printing ended
+    case 3: // M3 - Host printing ended
+      gcode_M3();
+      break;
+    case 4: // M4 - Object information and status
       gcode_M4();
       break;
     case 17:
@@ -6677,7 +6705,7 @@ void setPwmFrequency(uint8_t pin, int val) {
 
 void Stop() {
   disable_all_heaters();
-  HostPrinting = false; 
+  HostPrinting = false;
   if (IsRunning()) {
     Running = false;
     Stopped_gcode_LastN = gcode_LastN; // Save last g_code for restart
