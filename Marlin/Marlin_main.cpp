@@ -1997,9 +1997,9 @@ inline void gcode_G28() {
   // all axis have to home at the same time.
   // First, save the current active extruder offset,
   // then remove all offsets (delta Z and active extruder) for the following delta calculations.
-  float previous_extruder_x_offset = extruder_offset[A_AXIS][active_extruder];
-  float previous_extruder_y_offset = extruder_offset[B_AXIS][active_extruder];
-  for (int i = A_AXIS; i <= B_AXIS; i++) extruder_offset[i][active_extruder] = 0;
+  float previous_extruder_x_offset = extruder_offset[X_AXIS][active_extruder];
+  float previous_extruder_y_offset = extruder_offset[Y_AXIS][active_extruder];
+  for (int i = X_AXIS; i <= Y_AXIS; i++) extruder_offset[i][active_extruder] = 0;
   delta_z_offset = 0;
   // Pretend the current position is 0,0,0.
   for (int i = X_AXIS; i <= Z_AXIS; i++) current_position[i] = 0;
@@ -2024,8 +2024,8 @@ inline void gcode_G28() {
   calculate_delta(current_position);
   for (int i = A_AXIS; i <= C_AXIS; i++) delta_carriage_max_height[i] = delta[i];
   // Reapply extruder offset.
-  extruder_offset[A_AXIS][active_extruder] = previous_extruder_x_offset;
-  extruder_offset[B_AXIS][active_extruder] = previous_extruder_y_offset;
+  extruder_offset[X_AXIS][active_extruder] = previous_extruder_x_offset;
+  extruder_offset[Y_AXIS][active_extruder] = previous_extruder_y_offset;
   // Get the new carriages height after the offset and find maximum tower distance.
   calculate_delta(current_position);
   delta_z_offset = max(delta[A_AXIS] - delta_carriage_max_height[A_AXIS], max(delta[B_AXIS] - delta_carriage_max_height[B_AXIS], delta[C_AXIS] - delta_carriage_max_height[C_AXIS]));
@@ -2545,7 +2545,7 @@ inline void gcode_G29() {
   delta_grid_spacing[0] = xGridSpacing;
   delta_grid_spacing[1] = yGridSpacing;
   float z_offset = zprobe_zoffset;
-  if (code_seen(delta_axis_codes[C_AXIS])) z_offset += code_value();
+  if (code_seen(axis_codes[Z_AXIS])) z_offset += code_value();
 #else // !DELTA
   // solve the plane equation ax + by + d = z
   // A is the matrix with rows [x y 1] for all the probed points
@@ -5738,17 +5738,17 @@ void recalc_delta_settings(float diagonal_rod_a, float diagonal_rod_b, float dia
 
 void calculate_delta(float cartesian[3]) {
   delta[A_AXIS] = sqrt(delta_diagonal_rod_a_2
-                       - sq(delta_tower_a_x - cartesian[A_AXIS] + extruder_offset[A_AXIS][active_extruder])
-                       - sq(delta_tower_a_y - cartesian[B_AXIS] + extruder_offset[B_AXIS][active_extruder])
-                      ) + cartesian[C_AXIS];
+                       - sq(delta_tower_a_x - cartesian[X_AXIS] + extruder_offset[X_AXIS][active_extruder])
+                       - sq(delta_tower_a_y - cartesian[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder])
+                      ) + cartesian[Z_AXIS];
   delta[B_AXIS] = sqrt(delta_diagonal_rod_b_2
-                       - sq(delta_tower_b_x - cartesian[A_AXIS] + extruder_offset[A_AXIS][active_extruder])
-                       - sq(delta_tower_b_y - cartesian[B_AXIS] + extruder_offset[B_AXIS][active_extruder])
-                      ) + cartesian[C_AXIS];
+                       - sq(delta_tower_b_x - cartesian[X_AXIS] + extruder_offset[X_AXIS][active_extruder])
+                       - sq(delta_tower_b_y - cartesian[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder])
+                      ) + cartesian[Z_AXIS];
   delta[C_AXIS] = sqrt(delta_diagonal_rod_c_2
-                       - sq(delta_tower_c_x - cartesian[A_AXIS] + extruder_offset[A_AXIS][active_extruder])
-                       - sq(delta_tower_c_y - cartesian[B_AXIS] + extruder_offset[B_AXIS][active_extruder])
-                      ) + cartesian[C_AXIS];
+                       - sq(delta_tower_c_x - cartesian[X_AXIS] + extruder_offset[X_AXIS][active_extruder])
+                       - sq(delta_tower_c_y - cartesian[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder])
+                      ) + cartesian[Z_AXIS];
   /*
   SERIAL_ECHOPGM("cartesian x="); SERIAL_ECHO(cartesian[X_AXIS]);
   SERIAL_ECHOPGM(" y="); SERIAL_ECHO(cartesian[Y_AXIS]);
@@ -5911,9 +5911,9 @@ inline bool prepare_move_delta(float target[NUM_AXIS]) {
 #if ENABLED(AUTO_BED_LEVELING_FEATURE)
     adjust_delta(target);
 #endif
-    //SERIAL_ECHOPGM("target[A_AXIS]="); SERIAL_ECHOLN(target[A_AXIS]);
-    //SERIAL_ECHOPGM("target[B_AXIS]="); SERIAL_ECHOLN(target[B_AXIS]);
-    //SERIAL_ECHOPGM("target[C_AXIS]="); SERIAL_ECHOLN(target[C_AXIS]);
+    //SERIAL_ECHOPGM("target[X_AXIS]="); SERIAL_ECHOLN(target[X_AXIS]);
+    //SERIAL_ECHOPGM("target[Y_AXIS]="); SERIAL_ECHOLN(target[Y_AXIS]);
+    //SERIAL_ECHOPGM("target[Z_AXIS]="); SERIAL_ECHOLN(target[Z_AXIS]);
     //SERIAL_ECHOPGM("delta[A_AXIS]="); SERIAL_ECHOLN(delta[A_AXIS]);
     //SERIAL_ECHOPGM("delta[B_AXIS]="); SERIAL_ECHOLN(delta[B_AXIS]);
     //SERIAL_ECHOPGM("delta[C_AXIS]="); SERIAL_ECHOLN(delta[C_AXIS]);
@@ -6060,30 +6060,30 @@ void prepare_move() {
     destination[Z_AXIS] = current_position[Z_AXIS] + difference[Z_AXIS] * fraction;
     destination[E_AXIS] = current_position[E_AXIS] + difference[E_AXIS] * fraction;
     // calculate_delta(target);
-    calc_delta = delta_tower_a_x - destination[A_AXIS] + extruder_offset[A_AXIS][active_extruder];
+    calc_delta = delta_tower_a_x - destination[X_AXIS] + extruder_offset[X_AXIS][active_extruder];
     calc_delta = calc_delta * calc_delta;
     delta[A_AXIS] = delta_diagonal_rod_a_2 - calc_delta;
-    calc_delta = delta_tower_a_y - destination[B_AXIS] + extruder_offset[B_AXIS][active_extruder];
+    calc_delta = delta_tower_a_y - destination[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder];
     calc_delta = calc_delta * calc_delta;
     delta[A_AXIS] -= calc_delta;
     delta[A_AXIS] = sqrt(delta[A_AXIS]);
-    delta[A_AXIS] += destination[C_AXIS];
-    calc_delta = delta_tower_b_x - destination[A_AXIS] + extruder_offset[A_AXIS][active_extruder];
+    delta[A_AXIS] += destination[Z_AXIS];
+    calc_delta = delta_tower_b_x - destination[X_AXIS] + extruder_offset[X_AXIS][active_extruder];
     calc_delta = calc_delta * calc_delta;
     delta[B_AXIS] = delta_diagonal_rod_b_2 - calc_delta;
-    calc_delta = delta_tower_b_y - destination[B_AXIS] + extruder_offset[B_AXIS][active_extruder];
+    calc_delta = delta_tower_b_y - destination[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder];
     calc_delta = calc_delta * calc_delta;
     delta[B_AXIS] -= calc_delta;
     delta[B_AXIS] = sqrt(delta[B_AXIS]);
-    delta[B_AXIS] += destination[C_AXIS];
-    calc_delta = delta_tower_c_x - destination[A_AXIS] + extruder_offset[A_AXIS][active_extruder];
+    delta[B_AXIS] += destination[Z_AXIS];
+    calc_delta = delta_tower_c_x - destination[X_AXIS] + extruder_offset[X_AXIS][active_extruder];
     calc_delta = calc_delta * calc_delta;
     delta[C_AXIS] = delta_diagonal_rod_c_2 - calc_delta;
-    calc_delta = delta_tower_c_y - destination[B_AXIS] + extruder_offset[B_AXIS][active_extruder];
+    calc_delta = delta_tower_c_y - destination[Y_AXIS] + extruder_offset[Y_AXIS][active_extruder];
     calc_delta = calc_delta * calc_delta;
     delta[C_AXIS] -= calc_delta;
     delta[C_AXIS] = sqrt(delta[C_AXIS]);
-    delta[C_AXIS] += destination[C_AXIS];
+    delta[C_AXIS] += destination[Z_AXIS];
 #if ENABLED(AUTO_BED_LEVELING_FEATURE)
     // adjust_delta(target);
     if (!(delta_grid_spacing[0] == 0 || delta_grid_spacing[1] == 0)) { // G29 not done!
