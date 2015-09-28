@@ -230,6 +230,13 @@ extern uint8_t marlin_debug_flags;
 extern bool Running;
 inline bool IsRunning() { return  Running; }
 inline bool IsStopped() { return !Running; }
+extern bool HostPrinting;
+inline bool IsHostPrinting() { return HostPrinting; }
+inline bool IsHostNotPrinting() { return !HostPrinting; }
+extern float HostPrintingFilamentNeeded;
+extern uint8_t HostPrintingPercent;
+
+extern float filament_used;
 
 bool enqueuecommand(const char* cmd); //put a single ASCII command at the end of the current buffer or return false when it is full
 void enqueuecommands_P(const char* cmd); //put one or many ASCII commands at the end of the current buffer, read from flash
