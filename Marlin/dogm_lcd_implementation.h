@@ -281,7 +281,7 @@ static void lcd_implementation_status_screen() {
     u8g.drawBitmapP(40, 41 - TALL_FONT_CORRECTION, STATUS_SDCARDBYTEWIDTH, STATUS_SDCARDHEIGHT, status_sdcard_bmp);
 #endif
   else
-    u8g.drawBitmapP(40, 41 - TALL_FONT_CORRECTION, STATUS_IDLEBYTEWIDTH, STATUS_IDLEHEIGHT, status_idle_bmp);
+    u8g.drawBitmapP(40, 41 - TALL_FONT_CORRECTION, STATUS_UNKNOWNBYTEWIDTH, STATUS_UNKNOWNHEIGHT, status_unknown_bmp);
   // Progress bar frame
   u8g.drawFrame(54, 49, 73, 4 - TALL_FONT_CORRECTION);
   // SD Card Progress bar and clock

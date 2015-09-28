@@ -507,20 +507,20 @@ const unsigned char status_usb_bmp[] PROGMEM = { //AVR-GCC, WinAVR
 };
 
 // Idle logo.
-#define STATUS_IDLEWIDTH     11 //Width in pixels
-#define STATUS_IDLEHEIGHT    12 //Height in pixels
-#define STATUS_IDLEBYTEWIDTH  2 //Width in bytes
-const unsigned char status_idle_bmp[] PROGMEM = { //AVR-GCC, WinAVR
+#define STATUS_UNKNOWNWIDTH     11 //Width in pixels
+#define STATUS_UNKNOWNHEIGHT    12 //Height in pixels
+#define STATUS_UNKNOWNBYTEWIDTH  2 //Width in bytes
+const unsigned char status_unknown_bmp[] PROGMEM = { //AVR-GCC, WinAVR
   0x1F, 0x00,
-  0x60, 0xC0,
-  0x4E, 0x40,
-  0x91, 0x20,
-  0x81, 0x20,
-  0x82, 0x20,
-  0x84, 0x20,
-  0x80, 0x20,
-  0x44, 0x40,
-  0x60, 0xC0,
+  0x7F, 0xC0,
+  0x71, 0xC0,
+  0xEE, 0xE0,
+  0xFE, 0xE0,
+  0xFD, 0xE0,
+  0xFB, 0xE0,
+  0xFF, 0xE0,
+  0x7B, 0xC0,
+  0x7F, 0xC0,
   0x1F, 0x00,
   0x00, 0x00
 };
