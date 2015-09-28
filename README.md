@@ -20,9 +20,13 @@ When printing, menu will not return automatically to the status screen. Useful f
 * Added G131 command (remove active extruder offset)
 * Added G132 command (calibrate endstops offset)
 * Added M99 command (disable stepper motor(s) for X seconds)
+* Now shows 4 extruders on status screen (animated bed)
+* Added new M2 M3 and M4 experimental commands.
 
 See the [wiki](https://github.com/clefranc/Marlin4Delta/wiki) (not completed yet) for more information.
-
+<h1 align="center">
+  <img align="center" src="Documentation/Status%20screen%20with%204%20extruders.jpg" alt="Status screen">
+</h1>
 ## Development Only
 
 __Not for production use – use with caution!__
