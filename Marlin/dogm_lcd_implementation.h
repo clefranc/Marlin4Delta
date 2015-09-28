@@ -251,8 +251,6 @@ static void lcd_implementation_init() {
 static void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
 
 static void _draw_heater_status(int x, int heater) {
-  bool isBed = heater < 0;
-  int y = 17 + (isBed ? 1 : 0);
   lcd_setFont(FONT_STATUSMENU);
   u8g.setPrintPos(x, 7);
   lcd_print(itostr3(int((heater >= 0 ? degTargetHotend(heater) : degTargetBed()) + 0.5)));
@@ -260,19 +258,22 @@ static void _draw_heater_status(int x, int heater) {
   u8g.setPrintPos(x, 28);
   lcd_print(itostr3(int(heater >= 0 ? degHotend(heater) : degBed()) + 0.5));
   lcd_printPGM(PSTR(LCD_STR_DEGREE " "));
-  if (heater >= 0 && active_extruder == heater) {
+}
+
+static void _draw_active_extruder(int x, int extruder) {
+  if (active_extruder == extruder) {
     u8g.setColorIndex(0); // white on black
-    u8g.drawBox(x + 7, y, 2, 2);
+    u8g.drawBox(x + 7, 17, 3, 2);
     u8g.setColorIndex(1); // black on white
   } else
-    u8g.drawBox(x + 7, y, 2, 2);
+    u8g.drawBox(x + 7, 17, 3, 2);
 }
 
 static void lcd_implementation_status_screen() {
   u8g.setColorIndex(1); // black on white
-  // Symbols menu graphics, animated fan
-  u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT, (blink % 2) && fanSpeed ? status_screen0_bmp : status_screen1_bmp);
-  // Print source symbol (idle, host or SD card).
+  // Symbols menu graphics, animated bed and fan
+  u8g.drawBitmapP(9, 2, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT, (blink % 2) && degTargetBed() ? ((blink % 2) && fanSpeed ? status_screen0_bmp : status_screen1_bmp) : ((blink % 2) && fanSpeed ? status_screen2_bmp : status_screen3_bmp)  );
+  // Print source symbol (unknown, host or SD card).
   if (IsHostPrinting())
     u8g.drawBitmapP(40, 41 - TALL_FONT_CORRECTION, STATUS_USBBYTEWIDTH, STATUS_USBHEIGHT, status_usb_bmp);
 #if ENABLED(SDSUPPORT)
@@ -307,22 +308,27 @@ static void lcd_implementation_status_screen() {
   } else
     lcd_printPGM(PSTR("--:--"));
   // Extruders
-  for (int i = 0; i < EXTRUDERS; i++) _draw_heater_status(6 + i * 25, i);
+  for (int i = 0; i < EXTRUDERS; i++) {
+    _draw_heater_status(6 + i * 25, i);
+    _draw_active_extruder(6 + i * 25, i);
+  }
   // Heatbed
-  if (EXTRUDERS < 4) _draw_heater_status(81, -1);
+  if (EXTRUDERS < 4)
+    _draw_heater_status(81, -1);
+  else
+    _draw_heater_status(106, -1);
   // Fan
   lcd_setFont(FONT_STATUSMENU);
-  u8g.setPrintPos(104, 27);
-#if HAS_FAN
+  u8g.setPrintPos(104, 28);
+#if HAS_FAN && (EXTRUDERS < 4)
   int per = ((fanSpeed + 1) * 100) / 256;
   if (per) {
     lcd_print(itostr3(per));
     lcd_print('%');
-  } else
-#endif
-  {
-    lcd_printPGM(PSTR("---"));
+  } else {
+    lcd_printPGM(PSTR("---%"));
   }
+#endif
   // X, Y, Z-Coordinates
 #define XYZ_BASELINE 38
   lcd_setFont(FONT_STATUSMENU);
