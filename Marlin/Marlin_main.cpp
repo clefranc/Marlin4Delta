@@ -1899,13 +1899,13 @@ inline void gcode_G0_G1() {
       }
     }
 #endif //FWRETRACT
-    prepare_move();
-    if (IsHostPrinting() && HostPrintingFilamentNeeded > 0) {
-      filament_used += (destination[E_AXIS] - current_position[E_AXIS]) / 100;
+    if (IsHostPrinting() && (HostPrintingFilamentNeeded > 0)) {
+      filament_used += (destination[E_AXIS] - current_position[E_AXIS]);
       if (filament_used > HostPrintingFilamentNeeded)
         filament_used = HostPrintingFilamentNeeded;
       HostPrintingPercent = filament_used / HostPrintingFilamentNeeded * 100;
     }
+    prepare_move();
   }
 }
 
@@ -3013,6 +3013,7 @@ inline void gcode_M2() {
  */
 inline void gcode_M3() {
   //HostPrinting = code_value_short(); // Commented to keep the logo, print time and progress bar after print completed.
+  HostPrintingPercent = 100;
   LCD_MESSAGEPGM(MSG_HOST_PRINTING_ENDED);
   print_job_stop_ms = millis();
 }
