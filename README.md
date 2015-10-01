@@ -15,13 +15,14 @@ When printing, menu will not return automatically to the status screen. Useful f
 
 ## Specifics
 
-* M665 command have been updated
-* The EEPROM code have been updated
-* Added G131 command (remove active extruder offset)
-* Added G132 command (calibrate endstops offset)
-* Added M99 command (disable stepper motor(s) for X seconds)
-* Now shows 4 extruders on status screen (animated bed)
+* M665 command have been updated.
+* The EEPROM code have been updated.
+* Added G131 command (remove active extruder offset).
+* Added G132 command (calibrate endstops offset).
+* Added M99 command (disable stepper motor(s) for X seconds).
+* Now shows 4 extruders on status screen (animated bed).
 * Added new M2 M3 and M4 experimental commands.
+* Switch to SD menu when SD card is inserted.
 
 See the [wiki](https://github.com/clefranc/Marlin4Delta/wiki) (not completed yet) for more information.
 <h1 align="center">
