@@ -272,7 +272,7 @@ static void _draw_active_extruder(int x, int extruder) {
 static void lcd_implementation_status_screen() {
   u8g.setColorIndex(1); // black on white
   // Symbols menu graphics, animated bed and fan
-  u8g.drawBitmapP(9, 2, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT, (blink % 2) && degTargetBed() ? ((blink % 2) && fanSpeed ? status_screen0_bmp : status_screen1_bmp) : ((blink % 2) && fanSpeed ? status_screen2_bmp : status_screen3_bmp)  );
+  u8g.drawBitmapP(9, 2, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT, (blink % 2) && degTargetBed() ? ((blink % 2) && fanSpeed ? status_screen0_bmp : status_screen1_bmp) : ((blink % 2) && fanSpeed ? status_screen2_bmp : status_screen3_bmp));
   // Print source symbol (unknown, host or SD card).
   if (IsHostPrinting())
     u8g.drawBitmapP(40, 41 - TALL_FONT_CORRECTION, STATUS_USBBYTEWIDTH, STATUS_USBHEIGHT, status_usb_bmp);
@@ -325,9 +325,8 @@ static void lcd_implementation_status_screen() {
   if (per) {
     lcd_print(itostr3(per));
     lcd_print('%');
-  } else {
+  } else
     lcd_printPGM(PSTR("---%"));
-  }
 #endif
   // X, Y, Z-Coordinates
 #define XYZ_BASELINE 38
