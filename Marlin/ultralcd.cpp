@@ -55,6 +55,7 @@ static void lcd_control_temperature_preheat_pla_settings_menu();
 static void lcd_control_temperature_preheat_abs_settings_menu();
 static void lcd_control_motion_menu();
 static void lcd_control_volumetric_menu();
+static void lcd_about_menu();
 
 #if ENABLED(HAS_LCD_CONTRAST)
   static void lcd_set_contrast();
@@ -414,6 +415,7 @@ static void lcd_main_menu() {
 #endif
   }
 #endif //SDSUPPORT
+  MENU_ITEM(submenu, MSG_ABOUT, lcd_about_menu);
   END_MENU();
 }
 
@@ -1260,6 +1262,36 @@ void lcd_sdcard_menu() {
 }
 
 #endif //SDSUPPORT
+
+/**
+ *
+ * "About..." submenu
+ *
+ */
+static void lcd_about_menu() {
+#if ENABLED(SHOW_BOOTSCREEN)
+  lcd_show_bootscreen();
+#else
+  lcd_show_about();
+#endif
+  bool current_click = LCD_CLICKED;
+  if (ignore_click) {
+    if (wait_for_unclick) {
+      if (!current_click)
+        ignore_click = wait_for_unclick = false;
+      else
+        current_click = false;
+    } else if (current_click) {
+      lcd_quick_feedback();
+      wait_for_unclick = true;
+      current_click = false;
+    }
+  }
+  if (current_click) {
+    lcd_goto_menu(lcd_status_screen, true); //  Replace with lcd_main_menu to return to main menu.
+    lcd_implementation_init(); // to maybe revive the LCD if static electricity killed it.
+  }
+}
 
 /**
  *

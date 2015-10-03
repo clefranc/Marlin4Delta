@@ -387,6 +387,9 @@
 #ifndef MSG_CNG_SDCARD
   #define MSG_CNG_SDCARD                      "Change SD card"
 #endif
+#ifndef MSG_ABOUT
+  #define MSG_ABOUT                           "About..."
+#endif
 #ifndef MSG_ZPROBE_OUT
   #define MSG_ZPROBE_OUT                      "Z probe out. bed"
 #endif
