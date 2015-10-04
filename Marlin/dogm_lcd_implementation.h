@@ -191,51 +191,42 @@ char lcd_printPGM(const char* str) {
   static bool show_bootscreen = true;
 #endif
 
+static void lcd_show_about() {
+  lcd_setFont(FONT_MENU);
 #if ENABLED(SHOW_BOOTSCREEN)
-static void lcd_show_bootscreen() {
   int bmpPositiontX = (u8g.getWidth() - START_BMPWIDTH) / 2;
 #if ENABLED(START_BMPHIGH)
   int bmpPositiontY = 0; // pixel
   int txtOffsetX = -15; // pixel
-  int txtOffsetY = -39; // pixel
-#else
+  int txtOffsetY = -35; // pixel -39
+#else // !ENABLED(START_BMPHIGH)
   int bmpPositiontY = 4; // pixel
   int txtOffsetX = 0; // pixel
-  int txtOffsetY = 0; // pixel
-#endif
-  int txtLine1PositionX = (u8g.getWidth() - (sizeof(STRING_SPLASH_LINE1) - 1) * DOG_CHAR_WIDTH) / 2 + txtOffsetX;
-  u8g.firstPage();
-  do {
-      u8g.drawBitmapP(bmpPositiontX, bmpPositiontY, START_BMPBYTEWIDTH, START_BMPHEIGHT, start_bmp);
-      lcd_setFont(FONT_MENU);
-#ifndef STRING_SPLASH_LINE2
-      u8g.drawStr(txtLine1PositionX, u8g.getHeight() - DOG_CHAR_HEIGHT + txtOffsetY, STRING_SPLASH_LINE1);
-#else
-      int txtLine2PositionX = (u8g.getWidth() - (sizeof(STRING_SPLASH_LINE2) - 1) * DOG_CHAR_WIDTH) / 2 + txtOffsetX;
-      u8g.drawStr(txtLine1PositionX, u8g.getHeight() - DOG_CHAR_HEIGHT * 4 / 3 + txtOffsetY, STRING_SPLASH_LINE1);
-      u8g.drawStr(txtLine2PositionX, u8g.getHeight() - DOG_CHAR_HEIGHT / 2  + txtOffsetY, STRING_SPLASH_LINE2);
-#endif
-  } while (u8g.nextPage());
-}
-#endif
-
-static void lcd_show_about() {
-  int txtOffsetX = 0; // pixel
-  int txtOffsetY = 0; // pixel
-  lcd_setFont(FONT_MENU);
-  int txtLine0PositionX = (u8g.getWidth() - (sizeof(FIRMWARE_NAME) - 1) * DOG_CHAR_WIDTH) / 2 + txtOffsetX;
+  int txtOffsetY = 4; // pixel
+#endif // ENABLED(START_BMPHIGH)
+#else // !ENABLED(SHOW_BOOTSCREEN)
+  int txtLine0PositionX = (u8g.getWidth() - (sizeof(CUSTOM_FIRMWARE_NAME) - 1) * DOG_CHAR_WIDTH) / 2 + txtOffsetX;
   int txtLine0PositionY = u8g.getHeight() / 2 + txtOffsetY;
+#endif // ENABLED(SHOW_BOOTSCREEN)
+#ifndef STRING_SPLASH_LINE1
+  #define STRING_SPLASH_LINE1 "ersion unknown"
+#endif
+  int txtLine1PositionX = (u8g.getWidth() - (sizeof("v" STRING_SPLASH_LINE1) - 1) * DOG_CHAR_WIDTH) / 2 + txtOffsetX;
+#ifdef STRING_SPLASH_LINE2
+  int txtLine2PositionX = (u8g.getWidth() - (sizeof(STRING_SPLASH_LINE2) - 1) * DOG_CHAR_WIDTH) / 2 + txtOffsetX;
+#endif
   u8g.firstPage();
   do {
-    u8g.drawStr(txtLine0PositionX, txtLine0PositionY, FIRMWARE_NAME);
+#if ENABLED(SHOW_BOOTSCREEN)
+    u8g.drawBitmapP(bmpPositiontX, bmpPositiontY, START_BMPBYTEWIDTH, START_BMPHEIGHT, start_bmp);
+#else // !ENABLED(START_BMPHIGH)
+    u8g.drawStr(txtLine0PositionX, txtLine0PositionY, CUSTOM_FIRMWARE_NAME);
+#endif // ENABLED(SHOW_BOOTSCREEN)
 #ifndef STRING_SPLASH_LINE2
-      int txtLine1PositionX = (u8g.getWidth() - (sizeof(STRING_SPLASH_LINE1) - 1) * DOG_CHAR_WIDTH) / 2 + txtOffsetX;
-      u8g.drawStr(txtLine1PositionX, u8g.getHeight() - DOG_CHAR_HEIGHT + txtOffsetY, STRING_SPLASH_LINE1);
+    u8g.drawStr(txtLine1PositionX, u8g.getHeight() - (DOG_CHAR_HEIGHT / 6 * 4) * 2 + txtOffsetY, "v" STRING_SPLASH_LINE1);
 #else
-      int txtLine1PositionX = (u8g.getWidth() - (sizeof(STRING_SPLASH_LINE1) - 1) * DOG_CHAR_WIDTH) / 2 + txtOffsetX;
-      u8g.drawStr(txtLine1PositionX, u8g.getHeight() - DOG_CHAR_HEIGHT * 4 / 3 + txtOffsetY, STRING_SPLASH_LINE1);
-      int txtLine2PositionX = (u8g.getWidth() - (sizeof(STRING_SPLASH_LINE2) - 1) * DOG_CHAR_WIDTH) / 2 + txtOffsetX;
-      u8g.drawStr(txtLine2PositionX, u8g.getHeight() - DOG_CHAR_HEIGHT / 2  + txtOffsetY, STRING_SPLASH_LINE2);
+    u8g.drawStr(txtLine1PositionX, u8g.getHeight() - (DOG_CHAR_HEIGHT / 6 * 5) * 2 + txtOffsetY, "v" STRING_SPLASH_LINE1);
+    u8g.drawStr(txtLine2PositionX, u8g.getHeight() - (DOG_CHAR_HEIGHT / 6 * 5) + txtOffsetY, STRING_SPLASH_LINE2);
 #endif
   } while (u8g.nextPage());
 }
@@ -266,7 +257,7 @@ static void lcd_implementation_init() {
 #endif
 #if ENABLED(SHOW_BOOTSCREEN)
   if (show_bootscreen) {
-    lcd_show_bootscreen();
+    lcd_show_about();
     delay(1000);
     show_bootscreen = false;
   }

@@ -1269,11 +1269,7 @@ void lcd_sdcard_menu() {
  *
  */
 static void lcd_about_menu() {
-#if ENABLED(SHOW_BOOTSCREEN)
-  lcd_show_bootscreen();
-#else
   lcd_show_about();
-#endif
   bool current_click = LCD_CLICKED;
   if (ignore_click) {
     if (wait_for_unclick) {

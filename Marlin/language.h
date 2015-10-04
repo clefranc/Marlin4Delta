@@ -49,20 +49,20 @@
 
 #if MB(ULTIMAKER)|| MB(ULTIMAKER_OLD)|| MB(ULTIMAIN_2)
   #define MACHINE_NAME "Ultimaker"
-  #define SOURCE_CODE_URL "https://github.com/Ultimaker/Marlin"
+  #define CUSTOM_SOURCE_CODE_URL "github.com/Ultimaker/Marlin"
 #elif MB(RUMBA)
   #define MACHINE_NAME "Rumba"
 #elif MB(3DRAG)
   #define MACHINE_NAME "3Drag"
-  #define SOURCE_CODE_URL "http://3dprint.elettronicain.it/"
+  #define CUSTOM_SOURCE_CODE_URL "3dprint.elettronicain.it/"
 #elif MB(K8200)
   #define MACHINE_NAME "K8200"
-  #define SOURCE_CODE_URL "https://github.com/CONSULitAS/Marlin-K8200"
+  #define CUSTOM_SOURCE_CODE_URL "github.com/CONSULitAS/Marlin-K8200"
 #elif MB(5DPRINT)
   #define MACHINE_NAME "Makibox"
 #elif MB(SAV_MKI)
   #define MACHINE_NAME "SAV MkI"
-  #define SOURCE_CODE_URL "https://github.com/fmalpartida/Marlin/tree/SAV-MkI-config"
+  #define CUSTOM_SOURCE_CODE_URL "github.com/fmalpartida/Marlin/tree/SAV-MkI-config"
 #elif !defined(MACHINE_NAME)
   #define MACHINE_NAME "3D Printer"
 #endif
@@ -73,7 +73,10 @@
 #endif
 
 #ifndef SOURCE_CODE_URL
-  #define SOURCE_CODE_URL "https://github.com/MarlinFirmware/Marlin"
+#ifndef CUSTOM_SOURCE_CODE_URL
+  #define CUSTOM_SOURCE_CODE_URL "github.com/MarlinFirmware/Marlin"
+#endif
+  #define SOURCE_CODE_URL CUSTOM_SOURCE_CODE_URL
 #endif
 
 #ifndef DETAILED_BUILD_VERSION
@@ -93,8 +96,17 @@
 
 /* nothing here yet */
 
-// Common serial messages
-#define MSG_MARLIN "Marlin"
+// Firmware names and common serial messages
+#ifndef FIRMWARE_NAME
+  #define FIRMWARE_NAME "Marlin"
+  #define MSG_MARLIN FIRMWARE_NAME
+#endif
+#ifndef CUSTOM_FIRMWARE_NAME
+  #define CUSTOM_FIRMWARE_NAME FIRMWARE_NAME
+  #define MSG_MARLIN CUSTOM_FIRMWARE_NAME
+#else
+  #define MSG_MARLIN CUSTOM_FIRMWARE_NAME " (based on " FIRMWARE_NAME ")"
+#endif
 
 // Serial Console Messages (do not translate those!)
 
@@ -121,7 +133,7 @@
 #define MSG_INVALID_EXTRUDER                "Invalid extruder"
 #define MSG_INVALID_SOLENOID                "Invalid solenoid"
 #define MSG_ERR_NO_THERMISTORS              "No thermistors - no temperature"
-#define MSG_M115_REPORT                     "FIRMWARE_NAME:Marlin " DETAILED_BUILD_VERSION " SOURCE_CODE_URL:" SOURCE_CODE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:" MACHINE_NAME " EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " UUID:" MACHINE_UUID "\n"
+#define MSG_M115_REPORT                     "FIRMWARE_NAME:" FIRMWARE_NAME " (" DETAILED_BUILD_VERSION ") SOURCE_CODE_URL:" CUSTOM_SOURCE_CODE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:" MACHINE_NAME " EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " UUID:" MACHINE_UUID "\n"
 #define MSG_COUNT_X                         " Count X:"
 #define MSG_COUNT_A                         " Count A:"
 #define MSG_ERR_KILLED                      "Printer halted. kill() called!"
