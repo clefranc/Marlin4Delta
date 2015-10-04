@@ -1259,7 +1259,7 @@ static void do_blocking_move_to(float x, float y, float z) {
   destination[X_AXIS] = x;
   destination[Y_AXIS] = y;
   destination[Z_AXIS] = z;
-  prepare_move_raw(); // this will also set_current_to_destination
+  prepare_move(); // this will also set_current_to_destination
   st_synchronize();
 #else
   feedrate = homing_feedrate[Z_AXIS];
