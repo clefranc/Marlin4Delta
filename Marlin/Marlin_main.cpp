@@ -253,6 +253,7 @@ static float feedrate = 1500.0, saved_feedrate;
 float current_position[NUM_AXIS] = { 0.0 };
 static float destination[NUM_AXIS] = { 0.0 };
 bool axis_known_position[3] = { false };
+bool bed_leveling_in_progress = false;
 
 static long gcode_N, gcode_LastN, Stopped_gcode_LastN = 0;
 
@@ -1199,7 +1200,7 @@ static void run_z_probe() {
     SERIAL_ECHOLNPGM("run_z_probe (DELTA) 1");
 #endif
   // move down slowly until you find the bed
-  feedrate = homing_feedrate[Z_AXIS] / 4;
+  feedrate = homing_feedrate[Z_AXIS] / 8;
   destination[Z_AXIS] = -10;
   prepare_move_raw(); // this will also set_current_to_destination
   st_synchronize();
@@ -1259,7 +1260,10 @@ static void do_blocking_move_to(float x, float y, float z) {
   destination[X_AXIS] = x;
   destination[Y_AXIS] = y;
   destination[Z_AXIS] = z;
-  prepare_move(); // this will also set_current_to_destination
+  if (current_position[X_AXIS] == destination[X_AXIS] && current_position[Y_AXIS] == destination[Y_AXIS]) // Go directly to destination when only Z axis moves.
+    prepare_move_raw(); // this will also set_current_to_destination
+  else
+    prepare_move(); // this will also set_current_to_destination
   st_synchronize();
 #else
   feedrate = homing_feedrate[Z_AXIS];
@@ -2526,6 +2530,7 @@ inline void gcode_G29() {
     }
     return;
   }
+  bed_leveling_in_progress = true;
 #endif // AUTO_BED_LEVELING_GRID
 #if ENABLED(Z_PROBE_SLED)
   dock_sled(false); // engage (un-dock) the Z probe
@@ -2842,6 +2847,7 @@ inline void gcode_G30() {
   raise_z_for_servo();
 #endif
   stow_z_probe(false); // Retract Z Servo endstop if available
+  bed_leveling_in_progress = false;
 }
 
 #endif //!Z_PROBE_SLED
@@ -5819,7 +5825,7 @@ void calculate_delta(float cartesian[3]) {
 
 // Adjust print surface height by linear interpolation over the bed_level array.
 void adjust_delta(float cartesian[3]) {
-  if (delta_grid_spacing[0] == 0 || delta_grid_spacing[1] == 0) return; // G29 not done!
+  if (delta_grid_spacing[0] == 0 || delta_grid_spacing[1] == 0 || bed_leveling_in_progress) return; // G29 not done or in progress!
   int half = (AUTO_BED_LEVELING_GRID_POINTS - 1) / 2;
   float h1 = 0.001 - half, h2 = half - 0.001,
         grid_x = max(h1, min(h2, cartesian[X_AXIS] / delta_grid_spacing[0])),
