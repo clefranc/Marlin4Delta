@@ -73,14 +73,22 @@
 #endif
 
 #ifndef SOURCE_CODE_URL
-#ifndef CUSTOM_SOURCE_CODE_URL
-  #define CUSTOM_SOURCE_CODE_URL "github.com/MarlinFirmware/Marlin"
-#endif
+  #ifndef CUSTOM_SOURCE_CODE_URL
+    #define CUSTOM_SOURCE_CODE_URL "github.com/MarlinFirmware/Marlin"
+  #endif
   #define SOURCE_CODE_URL CUSTOM_SOURCE_CODE_URL
 #endif
 
+#ifndef SHORT_BUILD_VERSION
+  #error SHORT_BUILD_VERSION Information must be specified
+#endif
+
 #ifndef DETAILED_BUILD_VERSION
-  #error BUILD_VERSION Information must be specified
+  #error DETAILED_BUILD_VERSION Information must be specified
+#endif
+
+#ifndef STRING_DISTRIBUTION_DATE
+  #error STRING_DISTRIBUTION_DATE Information must be specified
 #endif
 
 #ifndef MACHINE_UUID

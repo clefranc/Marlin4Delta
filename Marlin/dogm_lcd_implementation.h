@@ -209,7 +209,7 @@ static void lcd_show_about() {
   int txtLine0PositionY = u8g.getHeight() / 2 + txtOffsetY;
 #endif // ENABLED(SHOW_BOOTSCREEN)
 #ifndef STRING_SPLASH_LINE1
-  #define STRING_SPLASH_LINE1 "ersion unknown"
+#define STRING_SPLASH_LINE1 "ersion unknown"
 #endif
   int txtLine1PositionX = (u8g.getWidth() - (sizeof("v" STRING_SPLASH_LINE1) - 1) * DOG_CHAR_WIDTH) / 2 + txtOffsetX;
 #ifdef STRING_SPLASH_LINE2

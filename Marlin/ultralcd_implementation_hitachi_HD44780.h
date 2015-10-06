@@ -485,6 +485,19 @@ static void bootscreen() {
 #endif
 }
 #endif // SHOW_BOOTSCREEN
+
+static void lcd_show_about() {
+  lcd.setCursor(LCD_WIDTH / 2 - lcd_strlen(CUSTOM_FIRMWARE_NAME) / 2, 0); lcd_printPGM(PSTR(CUSTOM_FIRMWARE_NAME));
+#ifdef STRING_SPLASH_LINE1
+  lcd.setCursor(LCD_WIDTH / 2 - lcd_strlen("v" STRING_SPLASH_LINE1) / 2, 2); lcd_printPGM(PSTR("v" STRING_SPLASH_LINE1));
+#else
+  lcd.setCursor(LCD_WIDTH / 2 - lcd_strlen("version unknown") / 2, 2); lcd_printPGM(PSTR("version unknown"));
+#endif
+#ifdef STRING_SPLASH_LINE2
+  lcd.setCursor(LCD_WIDTH / 2 - lcd_strlen(STRING_SPLASH_LINE2) / 2, 3); lcd_printPGM(PSTR(STRING_SPLASH_LINE2));
+#endif
+}
+
 /*
 Possible status screens:
 16x2   |000/000 B000/000|
