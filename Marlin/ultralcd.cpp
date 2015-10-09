@@ -766,14 +766,28 @@ static void _lcd_move(const char* name, AxisEnum axis, int min, int max) {
     if (min_software_endstops && current_position[axis] < min) current_position[axis] = min;
     if (max_software_endstops && current_position[axis] > max) current_position[axis] = max;
     encoderPosition = 0;
+    if (current_position[axis] != destination[axis]) {
+      SERIAL_ECHO(MSG_LCD_MOVE_AXIS " ");
+      SERIAL_ECHO(axis_codes[axis]);
+      SERIAL_ECHOPAIR(":",current_position[axis]);
+      SERIAL_EOL;     
+    }
     line_to_current(axis);
+    set_destination_to_current();
     lcdDrawUpdate = 1;
   }
   if (lcdDrawUpdate) lcd_implementation_drawedit(name, ftostr31(current_position[axis]));
   if (LCD_CLICKED) lcd_goto_menu(lcd_move_menu_axis);
 }
+#if ENABLED(DELTA)
+static int delta_clamp_duplicator;
+static int delta_clamp( float a ) { delta_clamp_duplicator = sqrt(sq(DELTA_PRINTABLE_RADIUS) - sq(a)); return delta_clamp_duplicator; }
+static void lcd_move_x() { _lcd_move(PSTR(MSG_MOVE_X), X_AXIS, max(X_MIN_POS, -delta_clamp(current_position[Y_AXIS])), min(X_MAX_POS, delta_clamp_duplicator)); }
+static void lcd_move_y() { _lcd_move(PSTR(MSG_MOVE_Y), Y_AXIS, max(Y_MIN_POS, -delta_clamp(current_position[X_AXIS])), min(Y_MAX_POS, delta_clamp_duplicator)); }
+#else
 static void lcd_move_x() { _lcd_move(PSTR(MSG_MOVE_X), X_AXIS, X_MIN_POS, X_MAX_POS); }
 static void lcd_move_y() { _lcd_move(PSTR(MSG_MOVE_Y), Y_AXIS, Y_MIN_POS, Y_MAX_POS); }
+#endif
 static void lcd_move_z() { _lcd_move(PSTR(MSG_MOVE_Z), Z_AXIS, Z_MIN_POS, Z_MAX_POS); }
 static void lcd_move_e(
 #if EXTRUDERS > 1

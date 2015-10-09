@@ -256,6 +256,7 @@ inline void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
   #define CRITICAL_SECTION_END    SREG = _sreg;
 #endif
 
+const char axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E'};
 extern bool axis_relative_modes[];
 extern int feedrate_multiplier;
 extern bool volumetric_enabled;
@@ -263,12 +264,14 @@ extern int extruder_multiplier[EXTRUDERS]; // sets extrude multiply factor (in p
 extern float filament_size[EXTRUDERS]; // cross-sectional area of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the extruder.
 extern float volumetric_multiplier[EXTRUDERS]; // reciprocal of cross-sectional area of filament (in square millimeters), stored this way to reduce computational burden in planner
 extern float current_position[NUM_AXIS];
+extern float destination[NUM_AXIS];
 extern float home_offset[3]; // axis[n].home_offset
 extern float min_pos[3]; // axis[n].min_pos
 extern float max_pos[3]; // axis[n].max_pos
 extern bool axis_known_position[3]; // axis[n].is_known
 
 #if ENABLED(DELTA)
+  const char delta_axis_codes[NUM_AXIS] = {'A', 'B', 'C', 'E'};
   extern float delta[3];
   extern float endstop_adj[3]; // axis[n].endstop_adj
   #ifndef DELTA_ENDSTOP_OFFSET_X
@@ -381,5 +384,8 @@ extern uint8_t active_extruder;
 #endif
 
 extern void calculate_volumetric_multipliers();
+
+inline void set_current_to_destination() { memcpy(current_position, destination, sizeof(current_position)); }
+inline void set_destination_to_current() { memcpy(destination, current_position, sizeof(destination)); }
 
 #endif //MARLIN_H

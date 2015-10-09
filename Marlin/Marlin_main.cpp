@@ -251,7 +251,7 @@ uint8_t marlin_debug_flags = DEBUG_INFO | DEBUG_ERRORS;
 
 static float feedrate = 1500.0, saved_feedrate;
 float current_position[NUM_AXIS] = { 0.0 };
-static float destination[NUM_AXIS] = { 0.0 };
+float destination[NUM_AXIS] = { 0.0 };
 bool axis_known_position[3] = { false };
 bool bed_leveling_in_progress = false;
 
@@ -281,7 +281,6 @@ bool cancel_heatup = false;
 
 const char errormagic[] PROGMEM = "Error:";
 const char echomagic[] PROGMEM = "echo:";
-const char axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E'};
 
 static bool relative_mode = false;  //Determines Absolute or Relative Coordinates
 static char serial_char;
@@ -361,7 +360,6 @@ float retract_recover_feedrate = RETRACT_RECOVER_FEEDRATE;
 #endif
 
 #if ENABLED(DELTA)
-const char delta_axis_codes[NUM_AXIS] = {'A', 'B', 'C', 'E'};
 float delta[3] = { 0 };
 float delta_z_offset = 0;
 float endstop_adj[3] = { DELTA_ENDSTOP_OFFSET_X, DELTA_ENDSTOP_OFFSET_Y, DELTA_ENDSTOP_OFFSET_Z };
@@ -1092,8 +1090,6 @@ inline void sync_plan_position_delta() {
   plan_set_position(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS]);
 }
 #endif
-inline void set_current_to_destination() { memcpy(current_position, destination, sizeof(current_position)); }
-inline void set_destination_to_current() { memcpy(destination, current_position, sizeof(destination)); }
 
 static void setup_for_endstop_move() {
   saved_feedrate = feedrate;
@@ -5758,9 +5754,16 @@ void ok_to_send() {
 }
 
 void clamp_to_software_endstops(float target[3]) {
+#if ENABLED(DELTA)
+  bool delta_clamp = sq(target[X_AXIS]) + sq(target[Y_AXIS]) > sq(DELTA_PRINTABLE_RADIUS);
+#endif
   if (min_software_endstops) {
+#if ENABLED(DELTA)
+    if (delta_clamp) set_destination_to_current();
+#else
     NOLESS(target[X_AXIS], min_pos[X_AXIS]);
     NOLESS(target[Y_AXIS], min_pos[Y_AXIS]);
+#endif
     float negative_z_offset = 0;
 #if ENABLED(AUTO_BED_LEVELING_FEATURE)
     if (zprobe_zoffset < 0) negative_z_offset += zprobe_zoffset;
@@ -5777,10 +5780,21 @@ void clamp_to_software_endstops(float target[3]) {
     NOLESS(target[Z_AXIS], min_pos[Z_AXIS] + negative_z_offset);
   }
   if (max_software_endstops) {
+#if ENABLED(DELTA)
+    if (delta_clamp) set_destination_to_current();
+#else
     NOMORE(target[X_AXIS], max_pos[X_AXIS]);
     NOMORE(target[Y_AXIS], max_pos[Y_AXIS]);
+#endif
     NOMORE(target[Z_AXIS], max_pos[Z_AXIS]);
   }
+#if ENABLED(DELTA)
+  if (delta_clamp) {
+    SERIAL_ECHOPAIR(MSG_DELTA_CLAMP_DETECTED " X:",current_position[X_AXIS]);
+    SERIAL_ECHOPAIR(" Y:", current_position[Y_AXIS]);
+    SERIAL_EOL;
+  }
+#endif
 }
 
 #if ENABLED(DELTA)
